@@ -10,6 +10,30 @@ let state;try{state={...empty(),...JSON.parse(localStorage.getItem(KEY)||'{}')}}
 for(const k of ['tasks','lessons','habits','logs'])if(!Array.isArray(state[k]))state[k]=[];
 let cfg;try{cfg=JSON.parse(localStorage.getItem(CFG)||'{}')}catch{cfg={}};
 let token=null,userId=null,editTask=null,editHabit=null,logHabit=null,selectedDay=new Date().getDay(),syncBusy=false,dirty=false;
+let selectedTaskTab='today';
+function switchTaskTab(tab){
+ if(!['today','upcoming','someday','done'].includes(tab))return;
+ selectedTaskTab=tab;
+ document.querySelectorAll('[data-task-tab]').forEach(button=>{
+   const active=button.dataset.taskTab===tab;
+   button.classList.toggle('is-selected',active);
+   button.setAttribute('aria-selected',String(active));
+   button.tabIndex=active?0:-1;
+ });
+ document.querySelectorAll('[data-task-panel]').forEach(panel=>{panel.hidden=panel.dataset.taskPanel!==tab});
+}
+document.querySelector('.task-tabs').addEventListener('click',event=>{
+ const button=event.target.closest('[data-task-tab]');
+ if(button)switchTaskTab(button.dataset.taskTab);
+});
+document.querySelector('.task-tabs').addEventListener('keydown',event=>{
+ if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
+ const tabs=[...document.querySelectorAll('[data-task-tab]')];
+ const current=tabs.findIndex(t=>t.dataset.taskTab===selectedTaskTab);
+ const target=event.key==='Home'?0:event.key==='End'?tabs.length-1:(current+(event.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length;
+ event.preventDefault();switchTaskTab(tabs[target].dataset.taskTab);tabs[target].focus();
+});
+
 const toast=(msg)=>{const x=$('toast');x.textContent=msg;x.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>x.classList.remove('show'),3000)};
 function save(){localStorage.setItem(KEY,JSON.stringify(state));dirty=true;render();scheduleSync()}
 function changeTheme(){const mode=state.theme==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):state.theme;document.documentElement.dataset.theme=mode;$('themeSelect').value=state.theme;$('theme').innerHTML=mode==='dark'?'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.5A8.5 8.5 0 0 1 8.5 4 8.5 8.5 0 1 0 20 15.5z"/></svg>';}
