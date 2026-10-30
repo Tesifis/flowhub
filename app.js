@@ -155,7 +155,32 @@ let syncTimeout;function scheduleSync(){if(!userId)return;clearTimeout(syncTimeo
 $('syncNow').onclick=async()=>{try{readCfg();if(!userId)throw Error('Сначала войди');await sync()}catch(e){status(e.message)}};
 try{const ss=JSON.parse(sessionStorage.getItem('fh_session')||'null');if(ss&&ss.expires>Date.now()+20000){token=ss.token;userId=ss.userId;$('logout').hidden=false;status('Авторизован')}}catch{}
 window.addEventListener('online',sync);document.addEventListener('visibilitychange',()=>{if(!document.hidden)sync()});setInterval(()=>{if(!document.hidden){render();sync()}},60000);
-if('serviceWorker' in navigator&&location.protocol!=='file:')window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+if('serviceWorker' in navigator&&location.protocol!=='file:'){
+ let updateAccepted=false;
+ const showUpdate=worker=>{
+  const banner=$('updateBanner'),button=$('applyUpdate');
+  if(!banner||!button||!worker)return;
+  banner.hidden=false;
+  button.onclick=()=>{updateAccepted=true;button.disabled=true;button.textContent='Обновляем…';worker.postMessage({type:'SKIP_WAITING'})};
+ };
+ navigator.serviceWorker.addEventListener('controllerchange',()=>{if(updateAccepted)location.reload()});
+ window.addEventListener('load',async()=>{
+  try{
+   const hadController=!!navigator.serviceWorker.controller;
+   const registration=await navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'});
+   if(registration.waiting&&hadController)showUpdate(registration.waiting);
+   registration.addEventListener('updatefound',()=>{
+    const installing=registration.installing;
+    if(!installing)return;
+    installing.addEventListener('statechange',()=>{
+     if(installing.state==='installed'&&navigator.serviceWorker.controller)showUpdate(registration.waiting||installing);
+    });
+   });
+   await registration.update();
+   document.addEventListener('visibilitychange',()=>{if(!document.hidden)registration.update().catch(()=>{})});
+  }catch(error){console.warn('Не удалось проверить обновление FlowHub',error)}
+ });
+}
 
 function activateView(view){
  for(const n of ['home','tasks','schedule','notes','more','habits']){const id='view'+n[0].toUpperCase()+n.slice(1);const el=$(id);if(el)el.hidden=n!==view;}
