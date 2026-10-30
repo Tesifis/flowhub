@@ -258,3 +258,19 @@ dialog .row{min-width:0}
 .add-choice-list button{width:100%;border:1px solid var(--border);background:var(--bg);border-radius:12px;padding:15px;color:var(--text);display:flex;justify-content:space-between;align-items:center;text-align:left;font-size:14px;font-weight:650}
 .add-choice-list button:disabled{opacity:.55;cursor:not-allowed}
 .add-choice-list small{color:var(--muted);font-size:12px}
+
+/* More page — organized settings groups */
+#viewMore .screen-header{padding-bottom:9px}
+.more-section{margin:14px 0 20px}
+.more-section h2{font-size:12px;color:var(--muted);font-weight:500;margin:0 0 9px 3px;letter-spacing:0}
+.more-group{background:var(--panel);border:1px solid var(--border);border-radius:15px;overflow:hidden}
+.more-row{width:100%;display:flex;align-items:center;gap:11px;padding:12px 13px;min-height:56px;color:var(--text);text-align:left;background:transparent;border:0;font-size:13px}
+.more-row+.more-row{border-top:1px solid var(--border)}
+.more-row>span:nth-child(2){min-width:0;flex:1;font-weight:600}
+.more-row small{display:block;color:var(--muted);font-size:10px;font-weight:400;margin-top:2px}
+.more-icon{width:31px;height:31px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);border-radius:9px;font-size:17px;flex-shrink:0}
+.more-chevron{font-size:23px;color:var(--muted)}
+.more-themes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px;padding:4px;border:1px solid var(--border);background:var(--panel);border-radius:13px}
+.more-themes button{min-width:0;border:0;border-radius:9px;background:none;color:var(--muted);padding:11px 3px;font-size:12px}
+.more-themes button.selected{background:var(--accent-soft);color:var(--accent);font-weight:750}
+.more-version{display:flex;justify-content:space-between;gap:8px;color:var(--muted);font-size:11px;padding:3px 3px 20px}
