@@ -91,7 +91,7 @@ const tomorrow=dayAdd(today,1);
 const nearTasks=active.filter(t=>t.due&&t.due<=tomorrow).sort((a,b)=>a.due.localeCompare(b.due));
 $('homeTaskCount').textContent=nearTasks.length;
 $('homeTaskList').innerHTML=nearTasks.length?nearTasks.slice(0,5).map(t=>`<div class="home-task"><input class="task-check" type="checkbox" data-home-check="${esc(t.id)}" aria-label="Выполнить ${esc(t.name)}"><div class="near-task-details"><span class="home-task-name">${esc(t.name)}</span><small>${t.due<today?'Просрочено':t.due===today?'Сегодня':'Завтра'}</small></div></div>`).join(''):'<div class="home-empty">На сегодня и завтра задач нет</div>';
-$('todayList').innerHTML=tasksHtml(todayTasks);$('upcomingList').innerHTML=tasksHtml(up);$('somedayList').innerHTML=tasksHtml(none);$('doneCount').textContent=done.length;$('doneList').innerHTML=tasksHtml(done);renderHabits();$('moreAccountStatus').textContent=userId?'Авторизован':'Не выполнен вход';$('moreSyncStatus').textContent=userId?'Подключено':'Локально';$('syncBadge').textContent=userId?'Облачная синхронизация подключена · офлайн доступ':'Данные на устройстве · офлайн доступ';}
+$('todayList').innerHTML=tasksHtml(todayTasks);$('upcomingList').innerHTML=tasksHtml(up);$('somedayList').innerHTML=tasksHtml(none);$('doneCount').textContent=done.length;$('doneList').innerHTML=tasksHtml(done);renderHabits();$('moreAccountStatus').textContent=userId?'Авторизован':'Не выполнен вход';$('syncBadge').textContent=userId?'Облачная синхронизация подключена · офлайн доступ':'Данные на устройстве · офлайн доступ';}
 const HABIT_ICONS={
 book:'<path d="M12 6c-2.5-1.8-5.2-2-9-1.4v14.6c3.8-.6 6.5-.4 9 1.4 2.5-1.8 5.2-2 9-1.4V4.6c-3.8-.6-6.5-.4-9 1.4z"/><path d="M12 6v14.6"/>',
 sport:'<path d="M6 8v8m-3-6v4m6-8v12m9-10v8m3-6v4m-6-8v12M3 12h18"/>',
@@ -172,11 +172,8 @@ $('homeAllHabits').addEventListener('click',()=>activateView('habits'));$('nextL
 $('homeTaskList').addEventListener('change',e=>{const x=e.target.closest('[data-home-check]');if(!x)return;const t=state.tasks.find(t=>t.id===x.dataset.homeCheck&&!t.deleted);if(t){t.done=x.checked;t.updatedAt=Date.now();save();}});
 
 document.querySelectorAll('[data-theme-choice]').forEach(b=>b.addEventListener('click',()=>{state.theme=b.dataset.themeChoice;save()}));
-$('moreProfile').onclick=()=>{$('profileInfo').textContent=userId?'Аккаунт подключён. Управление входом доступно в синхронизации.':'Вход в аккаунт ещё не выполнен. Данные пока хранятся локально.';$('profileDialog').showModal()};
-$('profileAccountAction').onclick=()=>{$('profileDialog').close();$('settings').click()};
-$('moreSync').onclick=()=>$('settings').click();
+$('moreAccount').onclick=()=>$('settings').click();
 $('moreNotifications').onclick=()=>toast('Уведомления появятся в следующем обновлении');
-$('moreOffline').onclick=()=>toast('FlowHub хранит данные на устройстве и работает офлайн после загрузки');
 $('moreBackup').onclick=()=>$('exportData').click();
 $('scheduleCalendar').onclick=()=>{weekOffset=0;selectedDay=new Date().getDay();render()};
 $('scheduleMenu').onclick=()=>$('editSchedule').click();
