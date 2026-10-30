@@ -148,3 +148,24 @@ dialog .form-actions button{min-width:0;white-space:normal}
 dialog .hint{overflow-wrap:anywhere}
 dialog .row{min-width:0}
 @media(max-width:400px){dialog .dialog-body{padding:16px}dialog .form-actions.wrap{justify-content:stretch}dialog .form-actions.wrap button{flex:1 1 auto}}
+
+/* Mobile 2.0: separate timetable and circular progress */
+#viewSchedule{min-height:50vh}
+#viewSchedule .schedule{margin-top:18px}
+#viewSchedule:not([hidden]){animation:page-in var(--motion-page) ease-out both}
+.overview-progress{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 18px}
+.overview-meter{display:flex;align-items:center;gap:11px;background:var(--panel);border:1px solid var(--border);border-radius:15px;padding:13px 11px;min-width:0}
+.overview-meter>div:last-child{display:grid;gap:3px;min-width:0}
+.overview-meter strong{font-size:13px;font-weight:700}
+.overview-meter small{font-size:10px;color:var(--muted);line-height:1.3}
+.progress-ring,.small-ring{--progress:0%;flex-shrink:0;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--accent) var(--progress),var(--border) 0);position:relative;isolation:isolate}
+.progress-ring{width:58px;height:58px}
+.small-ring{width:44px;height:44px}
+.progress-ring::before,.small-ring::before{content:"";position:absolute;inset:6px;border-radius:50%;background:var(--panel);z-index:-1}
+.small-ring::before{inset:5px}
+.progress-ring span{font-size:12px;font-weight:750}
+.small-ring span{font-size:10px;font-weight:700}
+.home-habit{display:flex;align-items:center;gap:12px}
+.home-habit-label{display:grid;gap:4px;min-width:0;flex:1;margin-bottom:0}
+.home-habit-label small{text-align:left}
+@media(max-width:370px){.overview-meter{gap:7px;padding:10px 7px}.progress-ring{width:47px;height:47px}.overview-meter strong{font-size:12px}.overview-meter small{font-size:9px}}
