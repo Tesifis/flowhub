@@ -172,7 +172,8 @@ $('homeAllHabits').addEventListener('click',()=>activateView('habits'));$('nextL
 $('homeTaskList').addEventListener('change',e=>{const x=e.target.closest('[data-home-check]');if(!x)return;const t=state.tasks.find(t=>t.id===x.dataset.homeCheck&&!t.deleted);if(t){t.done=x.checked;t.updatedAt=Date.now();save();}});
 
 document.querySelectorAll('[data-theme-choice]').forEach(b=>b.addEventListener('click',()=>{state.theme=b.dataset.themeChoice;save()}));
-$('moreProfile').onclick=()=>$('settings').click();
+$('moreProfile').onclick=()=>{$('profileInfo').textContent=userId?'Аккаунт подключён. Управление входом доступно в синхронизации.':'Вход в аккаунт ещё не выполнен. Данные пока хранятся локально.';$('profileDialog').showModal()};
+$('profileAccountAction').onclick=()=>{$('profileDialog').close();$('settings').click()};
 $('moreSync').onclick=()=>$('settings').click();
 $('moreNotifications').onclick=()=>toast('Уведомления появятся в следующем обновлении');
 $('moreOffline').onclick=()=>toast('FlowHub хранит данные на устройстве и работает офлайн после загрузки');
