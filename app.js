@@ -10,7 +10,13 @@ let state;try{state={...empty(),...JSON.parse(localStorage.getItem(KEY)||'{}')}}
 for(const k of ['tasks','lessons','habits','logs'])if(!Array.isArray(state[k]))state[k]=[];
 let cfg;try{cfg=JSON.parse(localStorage.getItem(CFG)||'{}')}catch{cfg={}};
 let token=null,userId=null,editTask=null,editHabit=null,logHabit=null,selectedDay=new Date().getDay(),syncBusy=false,dirty=false;
-let selectedTaskTab='today',selectedHabitDate=nowday();
+let selectedTaskTab='today',selectedHabitDate=nowday(),weekOffset=0;
+const mondayOf=date=>{const d=new Date(date.getFullYear(),date.getMonth(),date.getDate());d.setDate(d.getDate()-((d.getDay()+6)%7));return d};
+const weekKind=date=>{const anchor=Date.UTC(2026,9,26),m=mondayOf(date),diff=Math.round((Date.UTC(m.getFullYear(),m.getMonth(),m.getDate())-anchor)/604800000);return ((diff%2)+2)%2===0?'numerator':'denominator'};
+const weekLabel=kind=>kind==='numerator'?'Числитель':'Знаменатель';
+const matchesWeek=(lesson,date)=>!lesson.week||lesson.week==='all'||lesson.week===weekKind(date);
+function moveWeek(delta){weekOffset+=delta;render()}
+
 function switchTaskTab(tab){
  if(!['today','upcoming','someday','done'].includes(tab))return;
  selectedTaskTab=tab;
@@ -40,12 +46,17 @@ function changeTheme(){const mode=state.theme==='system'?(matchMedia('(prefers-c
 $('themeSelect').onchange=e=>{state.theme=e.target.value;save()};
 function scheduleStatus(lessons,d){const today=d===new Date().getDay(),t=new Date().toTimeString().slice(0,5);if(!today)return '';if(lessons.start<=t&&t<lessons.end)return 'Сейчас идёт';if(lessons.start>t)return 'Далее';return ''}
 function render(){changeTheme();const dt=new Date();$('date').textContent=new Intl.DateTimeFormat('ru-RU',{weekday:'long',day:'numeric',month:'long'}).format(dt);const open=state.tasks.filter(t=>!t.deleted&&!t.done);$('hello').textContent='Главная';
-$('days').innerHTML=[1,2,3,4,5,6,0].map(d=>{const date=new Date(dt.getFullYear(),dt.getMonth(),dt.getDate()+((d-dt.getDay()+7)%7));return `<button data-day="${d}" class="${d===selectedDay?'active':''} ${d===dt.getDay()?'current':''}"><span>${days[d]}</span><strong>${date.getDate()}</strong></button>`}).join('');
+const monday=mondayOf(dt);monday.setDate(monday.getDate()+weekOffset*7);
+const viewedDate=new Date(monday);viewedDate.setDate(monday.getDate()+((selectedDay+6)%7));
+const sunday=new Date(monday);sunday.setDate(monday.getDate()+6);
+const dateFmt=new Intl.DateTimeFormat('ru-RU',{day:'numeric',month:'short'});
+$('weekLabel').textContent=dateFmt.format(monday)+' — '+dateFmt.format(sunday)+' · '+weekLabel(weekKind(monday));
+$('days').innerHTML=[1,2,3,4,5,6,0].map((d,i)=>{const date=new Date(monday);date.setDate(monday.getDate()+i);const current=localDay(date)===nowday();return `<button data-day="${d}" class="${d===selectedDay?'active':''} ${current?'current':''}"><span>${days[d]}</span><strong>${date.getDate()}</strong></button>`}).join('');
 const nowMin=dt.getHours()*60+dt.getMinutes();
 const upcomingLessons=[];
-for(let offset=0;offset<7;offset++){
+for(let offset=0;offset<14;offset++){
  const date=new Date(dt);date.setDate(dt.getDate()+offset);
- for(const l of state.lessons.filter(x=>!x.deleted&&Number(x.day)===date.getDay())){
+ for(const l of state.lessons.filter(x=>!x.deleted&&Number(x.day)===date.getDay()&&matchesWeek(x,date))){
   const [hr,min]=String(l.start||'').split(':').map(Number);
   const [endHr,endMin]=String(l.end||'').split(':').map(Number);
   const begins=hr*60+min,ends=endHr*60+endMin;
@@ -59,8 +70,8 @@ const next=upcomingLessons[0];
 $('nextLessonKicker').textContent=next?(next.now?'Сейчас идёт':next.offset===0?'Следующая пара':next.offset===1?'Завтра':'Ближайшая пара'):'Расписание';
 $('nextLessonName').textContent=next?next.lesson.name:'Пар нет';
 $('nextLessonMeta').textContent=next?(next.offset===0?'Сегодня':next.offset===1?'Завтра':days[(dt.getDay()+next.offset)%7])+' · '+next.lesson.start+'–'+next.lesson.end+(next.lesson.room?' · '+next.lesson.room:''):'На ближайшую неделю занятий нет';
-const lessons=state.lessons.filter(x=>!x.deleted&&x.day===selectedDay).sort((a,b)=>a.start.localeCompare(b.start));
-$('scheduleList').innerHTML=lessons.length?lessons.map(l=>`<div class="lesson ${scheduleStatus(l,selectedDay)==='Сейчас идёт'?'now':''}"><div class="lesson-time">${esc(l.start)}<br>${esc(l.end)}</div><div><div class="lesson-name">${esc(l.name)}</div><div class="lesson-room">${esc(l.room)}</div>${scheduleStatus(l,selectedDay)?`<div class="lesson-status">${scheduleStatus(l,selectedDay)}</div>`:''}</div></div>`).join(''):'<div class="empty">На этот день пары не добавлены</div>';
+const lessons=state.lessons.filter(x=>!x.deleted&&Number(x.day)===selectedDay&&matchesWeek(x,viewedDate)).sort((a,b)=>a.start.localeCompare(b.start));
+$('scheduleList').innerHTML=lessons.length?lessons.map(l=>`<div class="lesson ${(weekOffset===0&&localDay(viewedDate)===nowday()&&scheduleStatus(l,selectedDay)==='Сейчас идёт')?'now':''}"><div class="lesson-time">${esc(l.start)}<br>${esc(l.end)}</div><div><div class="lesson-name">${esc(l.name)}</div><div class="lesson-room">${esc(l.room)}</div>${weekOffset===0&&localDay(viewedDate)===nowday()&&scheduleStatus(l,selectedDay)?`<div class="lesson-status">${scheduleStatus(l,selectedDay)}</div>`:''}</div></div>`).join(''):'<div class="empty">На этот день пары не добавлены</div>';
 const today=nowday(), active=state.tasks.filter(t=>!t.deleted&&!t.done),done=state.tasks.filter(t=>!t.deleted&&t.done).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));const todayTasks=active.filter(t=>t.due&&t.due<=today),up=active.filter(t=>t.due&&t.due>today).sort((a,b)=>a.due.localeCompare(b.due)),none=active.filter(t=>!t.due);$('todayCount').textContent=todayTasks.length;
 const tasksHtml=a=>a.length?a.map(t=>`<article class="task"><input class="task-check" type="checkbox" data-check="${t.id}" ${t.done?'checked':''} aria-label="Выполнить ${esc(t.name)}"><div class="task-info"><div class="task-name">${esc(t.name)}</div>${t.note?`<div class="task-note">${esc(t.note)}</div>`:''}${t.due?`<div class="task-due">${esc(t.due)}</div>`:''}</div><button class="task-edit" aria-label="Изменить дело" data-edit="${t.id}">✎</button></article>`).join(''):'<div class="empty">Пока ничего нет</div>';
 const dailyTasks=state.tasks.filter(t=>!t.deleted&&t.due&&t.due<=today);
@@ -105,6 +116,8 @@ const monday=new Date();const dow=(monday.getDay()+6)%7;monday.setDate(monday.ge
 const dates=Array.from({length:28},(_,i)=>dayAdd(today,i-27));$('activityGrid').innerHTML=dates.map(date=>{const count=habits.filter(h=>valueFor(h.id,date)>=h.target).length;const lvl=count===0?0:count>=3?3:count===2?2:1;return `<div class="activity-day level${lvl} ${date===today?'today':''}" data-day="${date.slice(-2)}" title="${date}: ${count} привычек выполнено" aria-label="${date}: ${count} привычек выполнено"></div>`}).join('');}
 $('habitWeek').addEventListener('click',e=>{const b=e.target.closest('[data-habit-date]');if(b&&!b.disabled){selectedHabitDate=b.dataset.habitDate;renderHabits()}});
 function valueFor(id,date){return state.logs.filter(x=>!x.deleted&&x.habitId===id&&x.date===date).reduce((v,x)=>v+Number(x.amount||0),0)}
+$('weekPrev').onclick=()=>moveWeek(-1);$('weekNext').onclick=()=>moveWeek(1);
+let swipeStart=null;const swipeArea=$('scheduleSwipe');swipeArea.addEventListener('touchstart',e=>{if(e.touches.length!==1)return;swipeStart={x:e.touches[0].clientX,y:e.touches[0].clientY}},{passive:true});swipeArea.addEventListener('touchend',e=>{if(!swipeStart||!e.changedTouches.length)return;const dx=e.changedTouches[0].clientX-swipeStart.x,dy=e.changedTouches[0].clientY-swipeStart.y;swipeStart=null;if(Math.abs(dx)>65&&Math.abs(dx)>Math.abs(dy)*1.4)moveWeek(dx<0?1:-1)},{passive:true});swipeArea.addEventListener('touchcancel',()=>{swipeStart=null});
 $('days').onclick=e=>{let b=e.target.closest('[data-day]');if(b){selectedDay=Number(b.dataset.day);render()}};
 $('add').onclick=()=>openTask();$('todayList').parentElement.addEventListener('click',taskClicked);$('upcomingList').addEventListener('click',taskClicked);$('somedayList').addEventListener('click',taskClicked);$('doneList').addEventListener('click',taskClicked);
 function taskClicked(e){const b=e.target.closest('[data-edit]');if(b)openTask(b.dataset.edit)};
@@ -112,9 +125,10 @@ for(const id of ['todayList','upcomingList','somedayList','doneList'])$(id).addE
 function openTask(id){editTask=id||null;const t=state.tasks.find(x=>x.id===id);$('taskTitle').textContent=t?'Изменить дело':'Новое дело';$('taskName').value=t?.name||'';$('taskNote').value=t?.note||'';const due=t?.due||nowday();$('taskWhen').value=t?(!t.due?'none':t.due===nowday()?'today':t.due===dayAdd(nowday(),1)?'tomorrow':'date'):'today';$('taskDate').value=due;$('dateInputWrap').hidden=$('taskWhen').value!=='date';$('deleteTask').hidden=!t;$('taskDialog').showModal()}
 $('taskWhen').onchange=()=>$('dateInputWrap').hidden=$('taskWhen').value!=='date';$('taskForm').onsubmit=e=>{e.preventDefault();const name=$('taskName').value.trim();if(!name)return;const w=$('taskWhen').value,due=w==='none'?null:w==='today'?nowday():w==='tomorrow'?dayAdd(nowday(),1):$('taskDate').value;if(w==='date'&&!due){toast('Выбери дату');return}const t=state.tasks.find(t=>t.id===editTask);const fields={name,note:$('taskNote').value,due,updatedAt:Date.now()};if(t)Object.assign(t,fields);else state.tasks.push({id:uid(),done:false,...fields});$('taskDialog').close();save()};
 $('deleteTask').onclick=()=>{const t=state.tasks.find(t=>t.id===editTask);if(t){t.deleted=true;t.updatedAt=Date.now();$('taskDialog').close();save()}};
-$('editSchedule').onclick=()=>{$('lessonDay').value=selectedDay;renderLessonEdit();$('scheduleDialog').showModal()};
-function renderLessonEdit(){const day=Number($('lessonDay').value);$('editLessons').innerHTML=state.lessons.filter(x=>!x.deleted&&x.day===day).sort((a,b)=>a.start.localeCompare(b.start)).map(l=>`<div class="edit-lesson"><span>${esc(l.start)} ${esc(l.name)}</span><button data-delete-lesson="${l.id}" aria-label="Удалить пару">✕</button></div>`).join('')};$('lessonDay').onchange=renderLessonEdit;
-$('lessonForm').onsubmit=e=>{e.preventDefault();const start=$('lessonStart').value,end=$('lessonEnd').value;if(end<=start){toast('Конец должен быть позже начала');return}state.lessons.push({id:uid(),day:Number($('lessonDay').value),name:$('lessonName').value.trim(),start,end,room:$('lessonRoom').value.trim(),updatedAt:Date.now()});$('lessonName').value='';$('lessonRoom').value='';renderLessonEdit();save()};
+$('editSchedule').onclick=()=>{$('lessonDay').value=selectedDay;$('lessonWeek').value=weekKind(viewedWeekDate());renderLessonEdit();$('scheduleDialog').showModal()};
+function viewedWeekDate(){const m=mondayOf(new Date());m.setDate(m.getDate()+weekOffset*7);return m}
+function renderLessonEdit(){const day=Number($('lessonDay').value);$('editLessons').innerHTML=state.lessons.filter(x=>!x.deleted&&x.day===day).sort((a,b)=>a.start.localeCompare(b.start)).map(l=>`<div class="edit-lesson"><span>${esc(l.start)} ${esc(l.name)} · ${l.week==='numerator'?'Числитель':l.week==='denominator'?'Знаменатель':'Каждую неделю'}</span><button data-delete-lesson="${l.id}" aria-label="Удалить пару">✕</button></div>`).join('')};$('lessonDay').onchange=renderLessonEdit;
+$('lessonForm').onsubmit=e=>{e.preventDefault();const start=$('lessonStart').value,end=$('lessonEnd').value;if(end<=start){toast('Конец должен быть позже начала');return}state.lessons.push({id:uid(),day:Number($('lessonDay').value),week:$('lessonWeek').value,name:$('lessonName').value.trim(),start,end,room:$('lessonRoom').value.trim(),updatedAt:Date.now()});$('lessonName').value='';$('lessonRoom').value='';renderLessonEdit();save()};
 $('editLessons').onclick=e=>{const b=e.target.closest('[data-delete-lesson]');if(b){const t=state.lessons.find(x=>x.id===b.dataset.deleteLesson);if(t){t.deleted=true;t.updatedAt=Date.now();renderLessonEdit();save()}}};$('clearLessons').onclick=()=>{if(!confirm('Удалить все пары этого дня?'))return;const day=Number($('lessonDay').value);state.lessons.filter(l=>l.day===day&&!l.deleted).forEach(l=>{l.deleted=true;l.updatedAt=Date.now()});renderLessonEdit();save()};
 $('addHabit').onclick=()=>openHabit();$('habitList').onclick=e=>{const ed=e.target.closest('[data-habit-edit]'),log=e.target.closest('[data-log]');if(ed)openHabit(ed.dataset.habitEdit);if(log)openLog(log.dataset.log)};
 function openHabit(id){editHabit=id||null;const h=state.habits.find(h=>h.id===id);$('habitTitle').textContent=h?'Изменить привычку':'Новая привычка';$('habitName').value=h?.name||'';$('habitUnit').value=h?.unit||'страниц';$('habitTarget').value=h?.target||10;$('habitIcon').value=h?.icon||'habit';renderHabitIconChoices();$('deleteHabit').hidden=!h;$('habitDialog').showModal()};
@@ -163,7 +177,7 @@ $('moreSync').onclick=()=>$('settings').click();
 $('moreNotifications').onclick=()=>toast('Уведомления появятся в следующем обновлении');
 $('moreOffline').onclick=()=>toast('FlowHub хранит данные на устройстве и работает офлайн после загрузки');
 $('moreBackup').onclick=()=>$('exportData').click();
-$('scheduleCalendar').onclick=()=>{selectedDay=new Date().getDay();render()};
+$('scheduleCalendar').onclick=()=>{weekOffset=0;selectedDay=new Date().getDay();render()};
 $('scheduleMenu').onclick=()=>$('editSchedule').click();
 $('taskMenu').onclick=()=>$('navAdd').click();
 function filterVisibleTasks(){const q=$('taskSearchInput').value.trim().toLocaleLowerCase('ru');document.querySelectorAll('#viewTasks .task').forEach(el=>{el.hidden=q&&!el.textContent.toLocaleLowerCase('ru').includes(q)})}
