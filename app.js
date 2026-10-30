@@ -5,9 +5,9 @@ const localDay=d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String
 const dayAdd=(date,n)=>{const d=new Date(date+'T12:00:00');d.setDate(d.getDate()+n);return localDay(d)};
 const nowday=()=>localDay(new Date()),days=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
 const esc=str=>String(str??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const empty=()=>({tasks:[],lessons:[],habits:[],logs:[],theme:'dark',weekAnchor:null});
+const empty=()=>({tasks:[],lessons:[],habits:[],logs:[],notes:[],theme:'dark',weekAnchor:null});
 let state;try{state={...empty(),...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch{state=empty()}
-for(const k of ['tasks','lessons','habits','logs'])if(!Array.isArray(state[k]))state[k]=[];
+for(const k of ['tasks','lessons','habits','logs','notes'])if(!Array.isArray(state[k]))state[k]=[];
 let cfg;try{cfg=JSON.parse(localStorage.getItem(CFG)||'{}')}catch{cfg={}};
 let token=null,userId=null,editTask=null,editHabit=null,logHabit=null,selectedDay=new Date().getDay(),syncBusy=false,dirty=false;
 const toast=(msg)=>{const x=$('toast');x.textContent=msg;x.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>x.classList.remove('show'),3000)};
@@ -21,7 +21,7 @@ const validLesson=(l,week)=>!l.deleted&&(!l.week||l.week==='all'||l.week===week)
 function scheduleStatus(lessons,d){const today=d===new Date().getDay(),t=new Date().toTimeString().slice(0,5);if(!today)return '';if(lessons.start<=t&&t<lessons.end)return 'Сейчас идёт';if(lessons.start>t)return 'Далее';return ''}
 let activeView='home',taskFilter='today';
 function showView(view){
- if(!['home','tasks','habits'].includes(view))return;
+ if(!['home','tasks','habits','notes'].includes(view))return;
  activeView=view;
  for(const section of document.querySelectorAll('[data-view]'))section.hidden=section.dataset.view!==view;
  for(const tab of document.querySelectorAll('[data-nav]')){const selected=tab.dataset.nav===view;tab.classList.toggle('active',selected);if(selected)tab.setAttribute('aria-current','page');else tab.removeAttribute('aria-current');}
@@ -34,7 +34,7 @@ const lessons=state.lessons.filter(x=>validLesson(x,selectedWeek())&&x.day===sel
 $('scheduleList').innerHTML=lessons.length?lessons.map(l=>`<div class="lesson ${scheduleStatus(l,selectedDay)==='Сейчас идёт'?'now':''}"><div class="lesson-time">${esc(l.start)}<br>${esc(l.end)}</div><div><div class="lesson-name">${esc(l.name)}</div><div class="lesson-room">${esc(l.room)}</div>${scheduleStatus(l,selectedDay)?`<div class="lesson-status">${scheduleStatus(l,selectedDay)}</div>`:''}</div></div>`).join(''):'<div class="empty">На этот день пары не добавлены</div>';
 const today=nowday(), active=state.tasks.filter(t=>!t.deleted&&!t.done),done=state.tasks.filter(t=>!t.deleted&&t.done).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));const todayTasks=active.filter(t=>t.due&&t.due<=today),up=active.filter(t=>t.due&&t.due>today).sort((a,b)=>a.due.localeCompare(b.due)),none=active.filter(t=>!t.due);$('todayCount').textContent=todayTasks.length;
 const priorityRank=t=>t.priority==='high'?0:t.priority==='low'?2:1;const sortedTasks=a=>[...a].sort((x,y)=>priorityRank(x)-priorityRank(y)||(x.due||'').localeCompare(y.due||''));const tasksHtml=a=>a.length?sortedTasks(a).map(t=>`<article class="task"><input class="task-check" type="checkbox" data-check="${t.id}" ${t.done?'checked':''} aria-label="Выполнить ${esc(t.name)}"><div class="task-info"><div class="task-name">${esc(t.name)}${t.priority==='high'?' <span class="priority-label high">Важно</span>':t.priority==='low'?' <span class="priority-label low">Низкий</span>':''}</div>${t.note?`<div class="task-note">${esc(t.note)}</div>`:''}${t.due?`<div class="task-due">${esc(t.due)}</div>`:''}</div><button class="task-edit" aria-label="Изменить дело" data-edit="${t.id}">✎</button></article>`).join(''):'<div class="empty">Пока ничего нет</div>';
-$('todayList').innerHTML=tasksHtml(todayTasks);$('upcomingList').innerHTML=tasksHtml(up);$('somedayList').innerHTML=tasksHtml(none);$('doneCount').textContent=done.length;$('doneList').innerHTML=tasksHtml(done);const buckets={today:todayTasks,upcoming:up,none};$('filteredTaskList').innerHTML=tasksHtml(buckets[taskFilter]);$('taskOverview').textContent=active.length+' активных · '+done.length+' выполнено';renderHabits();renderDashboard();$('syncBadge').textContent=userId?'Облачная синхронизация подключена · офлайн доступ':'Данные на устройстве · офлайн доступ';}
+$('todayList').innerHTML=tasksHtml(todayTasks);$('upcomingList').innerHTML=tasksHtml(up);$('somedayList').innerHTML=tasksHtml(none);$('doneCount').textContent=done.length;$('doneList').innerHTML=tasksHtml(done);const buckets={today:todayTasks,upcoming:up,none};$('filteredTaskList').innerHTML=tasksHtml(buckets[taskFilter]);$('taskOverview').textContent=active.length+' активных · '+done.length+' выполнено';renderHabits();renderDashboard();renderNotes();$('syncBadge').textContent=userId?'Облачная синхронизация подключена · офлайн доступ':'Данные на устройстве · офлайн доступ';}
 function renderDashboard(){
  const now=new Date(), t=now.toTimeString().slice(0,5),today=nowday();
  const lessons=state.lessons.filter(l=>validLesson(l,selectedWeek(now))&&l.day===now.getDay()).sort((a,b)=>a.start.localeCompare(b.start));
@@ -106,13 +106,47 @@ $('settings').onclick=()=>{$('supabaseUrl').value=cfg.url||'';$('supabaseKey').v
 $('exportData').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(state,null,2)],{type:'application/json'}));a.download=`flowhub-${nowday()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)};
 $('importData').onchange=async e=>{try{const text=await e.target.files[0].text(),obj=JSON.parse(text);if(!['tasks','lessons','habits','logs'].every(k=>Array.isArray(obj[k])))throw Error('Неподходящий формат');if(!confirm('Объединить данные из файла с текущими?'))return;mergeState(obj);save();toast('Данные импортированы')}catch(err){toast('Ошибка импорта: '+err.message)}finally{e.target.value=''}};
 function mergeState(remote){for(const key of ['tasks','lessons','habits','logs']){const map=new Map(state[key].map(x=>[x.id,x]));for(const x of remote[key]||[]){if(!x.id)continue;const old=map.get(x.id);if(!old||Number(x.updatedAt||0)>Number(old.updatedAt||0))map.set(x.id,x)}state[key]=Array.from(map.values())}}
+let editingNote=null;
+const noteSafe=n=>Array.isArray(n.items)?n.items:[];
+function renderNotes(){
+ const q=$('notesSearch').value.trim().toLocaleLowerCase('ru-RU');
+ const arr=state.notes.filter(n=>!n.deleted).filter(n=>[n.title,n.body,(n.tags||[]).join(' '),...noteSafe(n).map(i=>i.text)].join(' ').toLocaleLowerCase('ru-RU').includes(q)).sort((a,b)=>Number(!!b.pinned)-Number(!!a.pinned)||(b.updatedAt||0)-(a.updatedAt||0));
+ $('notesList').innerHTML=arr.length?arr.map(n=>{
+ const tags=(Array.isArray(n.tags)?n.tags:[]).map(t=>'<span class="note-tag">'+esc(t)+'</span>').join('');
+ const content=n.type==='checklist'?'<div class="note-preview">'+noteSafe(n).slice(0,6).map(i=>'<label class="note-check-row"><input type="checkbox" data-note-check="'+esc(n.id)+'" data-item-id="'+esc(i.id)+'" '+(i.done?'checked':'')+'><span class="'+(i.done?'note-strike':'')+'">'+esc(i.text)+'</span></label>').join('')+'</div>':'<p class="note-preview">'+esc(n.body||'')+'</p>';
+ return '<article class="note-card"><button class="note-open" type="button" data-note-edit="'+esc(n.id)+'"><strong>'+(n.pinned?'♢ ':'')+esc(n.title||'Без названия')+'</strong></button>'+content+'<div class="note-tags">'+tags+'</div></article>'}).join(''):'<div class="empty">'+(q?'Ничего не найдено':'Заметок пока нет')+'</div>';
+}
+function openNote(id){
+ editingNote=id||null;const n=state.notes.find(x=>x.id===id&&!x.deleted);
+ $('noteTitle').textContent=n?'Изменить заметку':'Новая заметка';$('noteName').value=n?.title||'';
+ $('noteType').value=n?.type||'text';$('noteBody').value=n?.type==='checklist'?noteSafe(n).map(i=>i.text).join('\n'):(n?.body||'');
+ $('noteTags').value=(n?.tags||[]).join(', ');$('notePinned').checked=!!n?.pinned;$('deleteNote').hidden=!n;
+ $('noteChecklistHint').hidden=$('noteType').value!=='checklist';$('noteDialog').showModal();
+}
+$('newNote').onclick=()=>openNote();
+$('notesSearch').addEventListener('input',renderNotes);
+$('noteType').onchange=()=>$('noteChecklistHint').hidden=$('noteType').value!=='checklist';
+$('notesList').addEventListener('click',e=>{const b=e.target.closest('[data-note-edit]');if(b)openNote(b.dataset.noteEdit)});
+$('notesList').addEventListener('change',e=>{const input=e.target.closest('[data-note-check]');if(!input)return;const n=state.notes.find(x=>x.id===input.dataset.noteCheck);const item=noteSafe(n).find(x=>x.id===input.dataset.itemId);if(item){item.done=input.checked;n.updatedAt=Date.now();save()}});
+$('noteForm').onsubmit=e=>{
+ e.preventDefault();const title=$('noteName').value.trim(),body=$('noteBody').value.trim(),type=$('noteType').value;
+ if(!title&&!body){toast('Добавь название или содержание');return}
+ const n=state.notes.find(x=>x.id===editingNote);
+ let items=[];
+ if(type==='checklist'){const prior=n?.type==='checklist'?noteSafe(n):[];const used=new Set();
+ items=body.split('\n').map(x=>x.trim()).filter(Boolean).map(text=>{const existing=prior.find(x=>x.text===text&&!used.has(x.id));if(existing){used.add(existing.id);return existing}return {id:uid(),text,done:false}})}
+ const fields={title,body:type==='text'?body:'',type,items,tags:$('noteTags').value.split(',').map(x=>x.trim()).filter(Boolean).slice(0,12),pinned:$('notePinned').checked,updatedAt:Date.now()};
+ if(n)Object.assign(n,fields);else state.notes.push({id:uid(),...fields});
+ $('noteDialog').close();save();
+};
+$('deleteNote').onclick=()=>{const n=state.notes.find(x=>x.id===editingNote);if(n&&confirm('Удалить заметку?')){n.deleted=true;n.updatedAt=Date.now();$('noteDialog').close();save()}};
 function status(msg){$('syncStatus').textContent=msg}
 function readCfg(){const url=$('supabaseUrl').value.trim().replace(/\/$/,'');const key=$('supabaseKey').value.trim();if(!/^https:\/\/[\w.-]+\.supabase\.co$/.test(url)||!key){throw Error('Укажи адрес Supabase и публичный ключ')}cfg={url,key};localStorage.setItem(CFG,JSON.stringify(cfg))}
 async function req(path,opts={}){const r=await fetch(cfg.url+'/auth/v1/'+path,{...opts,headers:{'apikey':cfg.key,'Content-Type':'application/json',...opts.headers}});const data=await r.json().catch(()=>({}));if(!r.ok)throw Error(data.msg||data.error_description||data.message||'Ошибка '+r.status);return data}
 async function db(method,body){const r=await fetch(cfg.url+'/rest/v1/flowhub_state?user_id=eq.'+encodeURIComponent(userId),{method,headers:{apikey:cfg.key,Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=representation'},body:body&&JSON.stringify(body)});const data=await r.json().catch(()=>[]);if(!r.ok)throw Error(data.message||'Ошибка базы '+r.status);return data}
 async function auth(mode){try{readCfg();const email=$('email').value.trim(),password=$('password').value;if(!email||!password)throw Error('Введи email и пароль');status('Подключение…');const result=await req(mode==='signup'?'signup':'token?grant_type=password',{method:'POST',body:JSON.stringify({email,password})});if(!result.access_token){status('Подтверди email, затем войди.');return}token=result.access_token;userId=result.user?.id;sessionStorage.setItem('fh_session',JSON.stringify({token,userId,refresh:result.refresh_token,expires:Date.now()+result.expires_in*1000}));$('logout').hidden=false;status('Вы вошли. Синхронизация включена.');await sync();render()}catch(e){status(e.message)}}
 $('signup').onclick=()=>auth('signup');$('login').onclick=()=>auth('login');$('logout').onclick=()=>{token=null;userId=null;sessionStorage.removeItem('fh_session');$('logout').hidden=true;status('Вы вышли');render()};
-async function sync(){if(syncBusy||!userId||!token||!navigator.onLine)return;syncBusy=true;try{const rows=await db('GET');if(rows.length){mergeState(rows[0].data||{});localStorage.setItem(KEY,JSON.stringify(state));render()}await db('POST',[{user_id:userId,data:{tasks:state.tasks,lessons:state.lessons,habits:state.habits,logs:state.logs}}]);dirty=false;status('Синхронизировано: '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}))}catch(e){status('Синхронизация: '+e.message)}finally{syncBusy=false}}
+async function sync(){if(syncBusy||!userId||!token||!navigator.onLine)return;syncBusy=true;try{const rows=await db('GET');if(rows.length){mergeState(rows[0].data||{});localStorage.setItem(KEY,JSON.stringify(state));render()}await db('POST',[{user_id:userId,data:{tasks:state.tasks,lessons:state.lessons,habits:state.habits,logs:state.logs,notes:state.notes}}]);dirty=false;status('Синхронизировано: '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}))}catch(e){status('Синхронизация: '+e.message)}finally{syncBusy=false}}
 let syncTimeout;function scheduleSync(){if(!userId)return;clearTimeout(syncTimeout);syncTimeout=setTimeout(sync,1800)};
 $('syncNow').onclick=async()=>{try{readCfg();if(!userId)throw Error('Сначала войди');await sync()}catch(e){status(e.message)}};
 try{const ss=JSON.parse(sessionStorage.getItem('fh_session')||'null');if(ss&&ss.expires>Date.now()+20000){token=ss.token;userId=ss.userId;$('logout').hidden=false;status('Авторизован')}}catch{}
