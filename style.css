@@ -238,3 +238,10 @@ dialog .row{min-width:0}
 .habit-icon-music{background:#3c305c;color:#d5a6ff}
 .habit-icon-study{background:#374163;color:#a8bfff}
 .habit-icon-health{background:#4c303f;color:#f3a3bc}
+
+/* Task categories: slim colorful right-side accents */
+#viewTasks .task{position:relative;overflow:hidden;padding-right:18px}
+#viewTasks .task::after{content:"";position:absolute;right:0;top:0;bottom:0;width:3px;background:#8073ed}
+#viewTasks .task-list .task:nth-child(4n+2)::after{background:#62a6f3}
+#viewTasks .task-list .task:nth-child(4n+3)::after{background:#5cbd8d}
+#viewTasks .task-list .task:nth-child(4n+4)::after{background:#d2a65c}
