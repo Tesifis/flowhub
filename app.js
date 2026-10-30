@@ -21,9 +21,22 @@ const lessons=state.lessons.filter(x=>!x.deleted&&x.day===selectedDay).sort((a,b
 $('scheduleList').innerHTML=lessons.length?lessons.map(l=>`<div class="lesson ${scheduleStatus(l,selectedDay)==='Сейчас идёт'?'now':''}"><div class="lesson-time">${esc(l.start)}<br>${esc(l.end)}</div><div><div class="lesson-name">${esc(l.name)}</div><div class="lesson-room">${esc(l.room)}</div>${scheduleStatus(l,selectedDay)?`<div class="lesson-status">${scheduleStatus(l,selectedDay)}</div>`:''}</div></div>`).join(''):'<div class="empty">На этот день пары не добавлены</div>';
 const today=nowday(), active=state.tasks.filter(t=>!t.deleted&&!t.done),done=state.tasks.filter(t=>!t.deleted&&t.done).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));const todayTasks=active.filter(t=>t.due&&t.due<=today),up=active.filter(t=>t.due&&t.due>today).sort((a,b)=>a.due.localeCompare(b.due)),none=active.filter(t=>!t.due);$('todayCount').textContent=todayTasks.length;
 const tasksHtml=a=>a.length?a.map(t=>`<article class="task"><input class="task-check" type="checkbox" data-check="${t.id}" ${t.done?'checked':''} aria-label="Выполнить ${esc(t.name)}"><div class="task-info"><div class="task-name">${esc(t.name)}</div>${t.note?`<div class="task-note">${esc(t.note)}</div>`:''}${t.due?`<div class="task-due">${esc(t.due)}</div>`:''}</div><button class="task-edit" aria-label="Изменить дело" data-edit="${t.id}">✎</button></article>`).join(''):'<div class="empty">Пока ничего нет</div>';
+const dailyTasks=state.tasks.filter(t=>!t.deleted&&t.due&&t.due<=today);
+const completedDaily=dailyTasks.filter(t=>t.done).length;
+const activeHabits=state.habits.filter(h=>!h.deleted);
+const completedHabits=activeHabits.filter(h=>valueFor(h.id,today)>=Math.max(1,Number(h.target)||1)).length;
+function setRing(id,progress,completed,total){
+ const pct=total?Math.round(progress):0;
+ $(id).style.setProperty('--progress',pct+'%');
+ $(id).setAttribute('aria-label',pct+'% выполнено');
+ $(id+'Value').textContent=pct+'%';
+ $(id+'Details').textContent=completed+' из '+total;
+}
+setRing('taskRing',dailyTasks.length?100*completedDaily/dailyTasks.length:0,completedDaily,dailyTasks.length);
+setRing('habitRing',activeHabits.length?100*activeHabits.reduce((sum,h)=>sum+Math.min(1,valueFor(h.id,today)/Math.max(1,Number(h.target)||1)),0)/activeHabits.length:0,completedHabits,activeHabits.length);
 $('homeTaskCount').textContent=todayTasks.length;
 $('homeTaskList').innerHTML=todayTasks.length?todayTasks.slice(0,3).map(t=>`<div class="home-task"><input class="task-check" type="checkbox" data-home-check="${esc(t.id)}" aria-label="Выполнить ${esc(t.name)}"><span class="home-task-name">${esc(t.name)}</span></div>`).join(''):'<div class="home-empty">На сегодня дел нет</div>';
-$('homeHabitList').innerHTML=state.habits.filter(h=>!h.deleted).slice(0,3).map(h=>{const v=valueFor(h.id,today),pct=Math.min(100,Math.round(v/Math.max(1,h.target)*100));return `<div class="home-habit"><div class="home-habit-label"><span>${esc(h.name)}</span><small>${v} / ${h.target} ${h.unit==='done'?'':esc(h.unit)}</small></div><div class="habit-progress"><span style="width:${pct}%"></span></div></div>`}).join('')||'<div class="home-empty">Добавь привычку, чтобы видеть прогресс</div>';
+$('homeHabitList').innerHTML=state.habits.filter(h=>!h.deleted).slice(0,3).map(h=>{const v=valueFor(h.id,today),pct=Math.min(100,Math.round(v/Math.max(1,h.target)*100));return `<div class="home-habit"><div class="small-ring" style="--progress:${pct}%" role="img" aria-label="${esc(h.name)}: ${pct}%"><span>${pct}%</span></div><div class="home-habit-label"><span>${esc(h.name)}</span><small>${v} / ${h.target} ${h.unit==='done'?'':esc(h.unit)}</small></div></div>`}).join('')||'<div class="home-empty">Добавь привычку, чтобы видеть прогресс</div>';
 $('todayList').innerHTML=tasksHtml(todayTasks);$('upcomingList').innerHTML=tasksHtml(up);$('somedayList').innerHTML=tasksHtml(none);$('doneCount').textContent=done.length;$('doneList').innerHTML=tasksHtml(done);renderHabits();$('syncBadge').textContent=userId?'Облачная синхронизация подключена · офлайн доступ':'Данные на устройстве · офлайн доступ';}
 function renderHabits(){const today=nowday(),habits=state.habits.filter(h=>!h.deleted);$('habitCount').textContent=habits.length;
 $('habitList').innerHTML=habits.length?habits.map(h=>{const v=valueFor(h.id,today),pct=Math.min(100,Math.round(v/h.target*100));return `<div class="habit"><div class="habit-top"><div><div class="habit-name">${esc(h.name)}</div><div class="habit-sub">${v} / ${h.target} ${h.unit==='done'?'выполнено':esc(h.unit)} сегодня</div></div><div class="habit-actions"><button data-log="${h.id}" aria-label="Отметить ${esc(h.name)}">＋</button><button data-habit-edit="${h.id}" aria-label="Изменить ${esc(h.name)}">✎</button></div></div><div class="habit-progress"><span style="width:${pct}%"></span></div></div>`}).join(''):'<div class="empty">Добавь первую привычку, например «Чтение».</div>';
@@ -67,11 +80,11 @@ window.addEventListener('online',sync);document.addEventListener('visibilitychan
 if('serviceWorker' in navigator&&location.protocol!=='file:')window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 
 function activateView(view){
- for(const n of ['home','tasks','notes','more','habits']){const id='view'+n[0].toUpperCase()+n.slice(1);const el=$(id);if(el)el.hidden=n!==view;}
+ for(const n of ['home','tasks','schedule','notes','more','habits']){const id='view'+n[0].toUpperCase()+n.slice(1);const el=$(id);if(el)el.hidden=n!==view;}
  document.querySelectorAll('.nav-item').forEach(b=>{const active=b.dataset.view===view;b.classList.toggle('is-active',active);if(active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
  window.scrollTo(0,0);
 }
-document.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.view==='schedule'){activateView('home');document.querySelectorAll('.nav-item').forEach(x=>x.classList.toggle('is-active',x===b));document.querySelector('.schedule').scrollIntoView({behavior:'smooth',block:'start'});}else activateView(b.dataset.view)}));
+document.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click',()=>{activateView(b.dataset.view)}));
 $('navAdd').addEventListener('click',()=>openTask());
 $('moreNotes').addEventListener('click',()=>activateView('notes'));
 $('quickNotes').addEventListener('click',()=>activateView('notes'));
