@@ -308,3 +308,10 @@ dialog .row{min-width:0}
 
 .dialog-body label.note-pin{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:10px}
 .dialog-body label.note-pin input[type="checkbox"]{width:17px;height:17px;flex:0 0 17px;margin:0}
+
+/* Notes: expandable search and inline checklists */
+.note-search-wrap{display:grid;grid-template-rows:0fr;opacity:0;transform:translateX(15px);transition:grid-template-rows .2s,opacity .2s,transform .2s;overflow:hidden}
+.note-search-wrap.open{grid-template-rows:1fr;opacity:1;transform:translateX(0);margin-top:10px}
+.note-search-wrap input{min-height:0;width:100%;border:1px solid var(--border);border-radius:12px;background:var(--panel);color:var(--text);padding:10px 12px}
+.note-checklist-field{display:grid;gap:10px}.note-checklist-field[hidden]{display:none}.checklist-edit-row{display:flex;align-items:center;gap:8px}.dialog-body .checklist-edit-row input[type=checkbox]{width:18px;flex:0 0 18px}.checklist-edit-row input[data-check-text]{flex:1;min-width:0}.checklist-edit-row button{background:transparent;color:var(--muted);border:0;font-size:20px}
+#noteTextField[hidden]{display:none}
