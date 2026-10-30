@@ -5,14 +5,14 @@ const localDay=d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String
 const dayAdd=(date,n)=>{const d=new Date(date+'T12:00:00');d.setDate(d.getDate()+n);return localDay(d)};
 const nowday=()=>localDay(new Date()),days=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
 const esc=str=>String(str??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const empty=()=>({tasks:[],lessons:[],habits:[],logs:[],theme:'system'});
+const empty=()=>({tasks:[],lessons:[],habits:[],logs:[],theme:'dark'});
 let state;try{state={...empty(),...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch{state=empty()}
 for(const k of ['tasks','lessons','habits','logs'])if(!Array.isArray(state[k]))state[k]=[];
 let cfg;try{cfg=JSON.parse(localStorage.getItem(CFG)||'{}')}catch{cfg={}};
 let token=null,userId=null,editTask=null,editHabit=null,logHabit=null,selectedDay=new Date().getDay(),syncBusy=false,dirty=false;
 const toast=(msg)=>{const x=$('toast');x.textContent=msg;x.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>x.classList.remove('show'),3000)};
 function save(){localStorage.setItem(KEY,JSON.stringify(state));dirty=true;render();scheduleSync()}
-function changeTheme(){const mode=state.theme==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):state.theme;document.documentElement.dataset.theme=mode;$('themeSelect').value=state.theme;}
+function changeTheme(){const mode=state.theme==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):state.theme;document.documentElement.dataset.theme=mode;$('themeSelect').value=state.theme;$('theme').textContent=mode==='dark'?'☀':'☾';}
 $('theme').onclick=()=>{state.theme=state.theme==='dark'?'light':'dark';save()};$('themeSelect').onchange=e=>{state.theme=e.target.value;save()};
 function scheduleStatus(lessons,d){const today=d===new Date().getDay(),t=new Date().toTimeString().slice(0,5);if(!today)return '';if(lessons.start<=t&&t<lessons.end)return 'Сейчас идёт';if(lessons.start>t)return 'Далее';return ''}
 function render(){changeTheme();const dt=new Date();$('date').textContent=new Intl.DateTimeFormat('ru-RU',{weekday:'long',day:'numeric',month:'long'}).format(dt);const open=state.tasks.filter(t=>!t.deleted&&!t.done);$('summary').textContent=`${open.filter(t=>t.due===nowday()).length} дел на сегодня · ${state.habits.filter(h=>!h.deleted).length} привычек`;
