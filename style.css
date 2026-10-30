@@ -315,3 +315,21 @@ dialog .row{min-width:0}
 .note-search-wrap input{min-height:0;width:100%;border:1px solid var(--border);border-radius:12px;background:var(--panel);color:var(--text);padding:10px 12px}
 .note-checklist-field{display:grid;gap:10px}.note-checklist-field[hidden]{display:none}.checklist-edit-row{display:flex;align-items:center;gap:8px}.dialog-body .checklist-edit-row input[type=checkbox]{width:18px;flex:0 0 18px}.checklist-edit-row input[data-check-text]{flex:1;min-width:0}.checklist-edit-row button{background:transparent;color:var(--muted);border:0;font-size:20px}
 #noteTextField[hidden]{display:none}
+
+/* 4-week habit activity calendar */
+.activity-panel{padding:16px}
+.activity-grid{display:block;margin-top:0}
+.activity-summary{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:18px;color:var(--muted);font-size:12px}
+.activity-summary strong{color:var(--text);font-size:24px;letter-spacing:-.7px}
+.activity-summary small{font-size:11px;font-weight:400;letter-spacing:0;color:var(--muted)}
+.activity-weekdays,.activity-calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px}
+.activity-weekdays{margin-bottom:8px;text-align:center;font-size:10px;color:var(--muted)}
+.activity-calendar .activity-day{min-height:0;aspect-ratio:1;border-radius:9px}
+.activity-calendar .activity-day::after{font-size:11px;font-weight:550}
+.activity-calendar .activity-day.today{outline:2px solid var(--accent);outline-offset:2px}
+.activity-spacer{min-width:0}
+.activity-legend{display:flex;justify-content:flex-end;align-items:center;gap:5px;margin-top:16px;font-size:10px;color:var(--muted)}
+.activity-legend i{display:block;width:12px;height:12px;border-radius:4px;border:1px solid var(--border);background:var(--bg)}
+.activity-legend i.level1{background:color-mix(in srgb,var(--accent) 27%,var(--panel))}
+.activity-legend i.level2{background:color-mix(in srgb,var(--accent) 60%,var(--panel))}
+.activity-legend i.level3{background:var(--accent)}
