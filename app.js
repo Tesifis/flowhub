@@ -124,8 +124,8 @@ $('days').onclick=e=>{let b=e.target.closest('[data-day]');if(b){selectedDay=Num
 $('add').onclick=()=>openTask();$('todayList').parentElement.addEventListener('click',taskClicked);$('upcomingList').addEventListener('click',taskClicked);$('somedayList').addEventListener('click',taskClicked);$('doneList').addEventListener('click',taskClicked);
 function taskClicked(e){const b=e.target.closest('[data-edit]');if(b)openTask(b.dataset.edit)};
 for(const id of ['todayList','upcomingList','somedayList','doneList'])$(id).addEventListener('change',e=>{const x=e.target.closest('[data-check]');if(!x)return;const t=state.tasks.find(t=>t.id===x.dataset.check);if(t){t.done=x.checked;t.updatedAt=Date.now();save()}});
-function openTask(id){editTask=id||null;const t=state.tasks.find(x=>x.id===id);$('taskTitle').textContent=t?'Изменить задачу':'Новая задача';$('taskName').value=t?.name||'';$('taskNote').value=t?.note||'';const due=t?.due||nowday();$('taskWhen').value=t?(!t.due?'none':t.due===nowday()?'today':t.due===dayAdd(nowday(),1)?'tomorrow':'date'):'today';$('taskDate').value=due;$('dateInputWrap').hidden=$('taskWhen').value!=='date';$('deleteTask').hidden=!t;$('taskDialog').showModal()}
-$('taskWhen').onchange=()=>$('dateInputWrap').hidden=$('taskWhen').value!=='date';$('taskForm').onsubmit=e=>{e.preventDefault();const name=$('taskName').value.trim();if(!name)return;const w=$('taskWhen').value,due=w==='none'?null:w==='today'?nowday():w==='tomorrow'?dayAdd(nowday(),1):$('taskDate').value;if(w==='date'&&!due){toast('Выбери дату');return}const t=state.tasks.find(t=>t.id===editTask);const fields={name,note:$('taskNote').value,due,updatedAt:Date.now()};if(t)Object.assign(t,fields);else state.tasks.push({id:uid(),done:false,...fields});$('taskDialog').close();save()};
+function openTask(id){editTask=id||null;const t=state.tasks.find(x=>x.id===id);$('taskTitle').textContent=t?'Изменить задачу':'Новая задача';$('taskName').value=t?.name||'';$('taskNote').value=t?.note||'';const due=t?.due||nowday();$('taskWhen').value=t?(!t.due?'none':t.due===nowday()?'today':t.due===dayAdd(nowday(),1)?'tomorrow':'date'):'today';$('taskDate').value=due;$('taskReminder').value=t?.reminderTime||'';$('dateInputWrap').hidden=$('taskWhen').value!=='date';$('reminderWrap').hidden=$('taskWhen').value==='none';$('deleteTask').hidden=!t;$('taskDialog').showModal()}
+$('taskWhen').onchange=()=>{$('dateInputWrap').hidden=$('taskWhen').value!=='date';$('reminderWrap').hidden=$('taskWhen').value==='none'};$('taskForm').onsubmit=e=>{e.preventDefault();const name=$('taskName').value.trim();if(!name)return;const w=$('taskWhen').value,due=w==='none'?null:w==='today'?nowday():w==='tomorrow'?dayAdd(nowday(),1):$('taskDate').value;if(w==='date'&&!due){toast('Выбери дату');return}const t=state.tasks.find(t=>t.id===editTask);const reminderTime=due?$('taskReminder').value:'';const fields={name,note:$('taskNote').value,due,reminderTime,reminderSentAt:null,updatedAt:Date.now()};if(t)Object.assign(t,fields);else state.tasks.push({id:uid(),done:false,...fields});$('taskDialog').close();save()};
 $('deleteTask').onclick=()=>{const t=state.tasks.find(t=>t.id===editTask);if(t){t.deleted=true;t.updatedAt=Date.now();$('taskDialog').close();save()}};
 $('editSchedule').onclick=()=>{$('lessonDay').value=selectedDay;$('lessonWeek').value=weekKind(viewedWeekDate());renderLessonEdit();$('scheduleDialog').showModal()};
 function viewedWeekDate(){const m=mondayOf(new Date());m.setDate(m.getDate()+weekOffset*7);return m}
@@ -176,7 +176,7 @@ $('homeTaskList').addEventListener('change',e=>{const x=e.target.closest('[data-
 
 document.querySelectorAll('[data-theme-choice]').forEach(b=>b.addEventListener('click',()=>{state.theme=b.dataset.themeChoice;save()}));
 $('moreAccount').onclick=()=>$('settings').click();
-$('moreNotifications').onclick=()=>toast('Уведомления появятся в следующем обновлении');
+$('moreNotifications').onclick=()=>{updateReminderPermission();$('reminderDialog').showModal()};
 $('moreBackup').onclick=()=>$('dataDialog').showModal();
 $('importDataButton').onclick=()=>$('importData').click();
 $('scheduleCalendar').onclick=()=>{weekOffset=0;selectedDay=new Date().getDay();render()};
@@ -202,6 +202,14 @@ $('noteSearchInput').oninput=renderNotes;
 $('notesMenu').onclick=()=>openNote();
 $('noteForm').onsubmit=e=>{e.preventDefault();const title=$('noteName').value.trim(),body=$('noteBody').value.trim();const isList=$('noteCategory').value==='list';const checklist=isList?noteDraftItems.filter(x=>x.text.trim()).map(x=>({...x,text:x.text.trim()})):[];if(!title&&!body&&!checklist.length){toast('Заполни заголовок или содержание');return}const n=state.notes.find(x=>x.id===editingNote);const data={title,body,checklist:isList?checklist:[],category:$('noteCategory').value,pinned:$('notePinned').checked,updatedAt:Date.now()};if(n)Object.assign(n,data);else state.notes.push({id:uid(),...data});$('noteDialog').close();save()};
 $('noteDelete').onclick=()=>{const n=state.notes.find(x=>x.id===editingNote);if(n){n.deleted=true;n.updatedAt=Date.now();$('noteDialog').close();save()}};
+
+
+function updateReminderPermission(){const supported='Notification' in window&&window.isSecureContext;$('reminderPermission').textContent=!supported?'Уведомления браузера недоступны в этом окружении.':Notification.permission==='granted'?'Уведомления разрешены.':Notification.permission==='denied'?'Уведомления заблокированы в настройках браузера.':'Уведомления пока не разрешены.';$('enableReminders').disabled=!supported||Notification.permission!=='default';}
+$('enableReminders').onclick=async()=>{if(!('Notification' in window)||!window.isSecureContext)return;await Notification.requestPermission();updateReminderPermission()};
+$('testReminder').onclick=()=>{if('Notification' in window&&Notification.permission==='granted'){new Notification('FlowHub',{body:'Проверка напоминаний работает'});toast('Тестовое уведомление отправлено')}else toast('Сначала разреши уведомления')};
+const reminderSeen=new Set();
+function checkReminders(){const now=new Date(),today=nowday(),currentTime=now.toTimeString().slice(0,5);for(const task of state.tasks){if(task.deleted||task.done||!task.due||!task.reminderTime||task.due!==today||task.reminderTime>currentTime)continue;const key=task.id+'|'+task.due+'|'+task.reminderTime;if(reminderSeen.has(key)||task.reminderSentAt===key)continue;reminderSeen.add(key);task.reminderSentAt=key;localStorage.setItem(KEY,JSON.stringify(state));if('Notification' in window&&Notification.permission==='granted'){new Notification('FlowHub · Напоминание',{body:task.name,tag:'flowhub-task-'+task.id})}else toast('Напоминание: '+task.name)}}
+setInterval(checkReminders,30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkReminders()});checkReminders();
 
 render();if(userId)sync();
 })();
