@@ -5,12 +5,12 @@ const localDay=d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String
 const dayAdd=(date,n)=>{const d=new Date(date+'T12:00:00');d.setDate(d.getDate()+n);return localDay(d)};
 const nowday=()=>localDay(new Date()),days=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
 const esc=str=>String(str??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const empty=()=>({tasks:[],lessons:[],habits:[],logs:[],theme:'dark'});
+const empty=()=>({tasks:[],lessons:[],habits:[],logs:[],notes:[],theme:'dark'});
 let state;try{state={...empty(),...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch{state=empty()}
-for(const k of ['tasks','lessons','habits','logs'])if(!Array.isArray(state[k]))state[k]=[];
+for(const k of ['tasks','lessons','habits','logs','notes'])if(!Array.isArray(state[k]))state[k]=[];
 let cfg;try{cfg=JSON.parse(localStorage.getItem(CFG)||'{}')}catch{cfg={}};
 let token=null,userId=null,editTask=null,editHabit=null,logHabit=null,selectedDay=new Date().getDay(),syncBusy=false,dirty=false;
-let selectedTaskTab='today',selectedHabitDate=nowday(),weekOffset=0;
+let selectedTaskTab='today',selectedHabitDate=nowday(),weekOffset=0,selectedNoteFilter='all',editingNote=null;
 const mondayOf=date=>{const d=new Date(date.getFullYear(),date.getMonth(),date.getDate());d.setDate(d.getDate()-((d.getDay()+6)%7));return d};
 const weekKind=date=>{const anchor=Date.UTC(2026,9,26),m=mondayOf(date),diff=Math.round((Date.UTC(m.getFullYear(),m.getMonth(),m.getDate())-anchor)/604800000);return ((diff%2)+2)%2===0?'numerator':'denominator'};
 const weekLabel=kind=>kind==='numerator'?'Числитель':'Знаменатель';
@@ -45,7 +45,7 @@ function save(){localStorage.setItem(KEY,JSON.stringify(state));dirty=true;rende
 function changeTheme(){const mode=state.theme==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):state.theme;document.documentElement.dataset.theme=mode;$('themeSelect').value=state.theme;document.querySelectorAll('[data-theme-choice]').forEach(b=>{const on=b.dataset.themeChoice===state.theme;b.classList.toggle('selected',on);b.setAttribute('aria-pressed',String(on))});}
 $('themeSelect').onchange=e=>{state.theme=e.target.value;save()};
 function scheduleStatus(lessons,d){const today=d===new Date().getDay(),t=new Date().toTimeString().slice(0,5);if(!today)return '';if(lessons.start<=t&&t<lessons.end)return 'Сейчас идёт';if(lessons.start>t)return 'Далее';return ''}
-function render(){changeTheme();const dt=new Date();$('date').textContent=new Intl.DateTimeFormat('ru-RU',{weekday:'long',day:'numeric',month:'long'}).format(dt);const open=state.tasks.filter(t=>!t.deleted&&!t.done);$('hello').textContent='Главная';
+function render(){renderNotes();changeTheme();const dt=new Date();$('date').textContent=new Intl.DateTimeFormat('ru-RU',{weekday:'long',day:'numeric',month:'long'}).format(dt);const open=state.tasks.filter(t=>!t.deleted&&!t.done);$('hello').textContent='Главная';
 const monday=mondayOf(dt);monday.setDate(monday.getDate()+weekOffset*7);
 const viewedDate=new Date(monday);viewedDate.setDate(monday.getDate()+((selectedDay+6)%7));
 const sunday=new Date(monday);sunday.setDate(monday.getDate()+6);
@@ -141,14 +141,14 @@ for(const b of document.querySelectorAll('[data-close]'))b.onclick=()=>$(b.datas
 $('settings').onclick=()=>{$('supabaseUrl').value=cfg.url||'';$('supabaseKey').value=cfg.key||'';$('settingsDialog').showModal()};
 $('exportData').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(state,null,2)],{type:'application/json'}));a.download=`flowhub-${nowday()}.json`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)};
 $('importData').onchange=async e=>{try{const text=await e.target.files[0].text(),obj=JSON.parse(text);if(!['tasks','lessons','habits','logs'].every(k=>Array.isArray(obj[k])))throw Error('Неподходящий формат');if(!confirm('Объединить данные из файла с текущими?'))return;mergeState(obj);save();toast('Данные импортированы')}catch(err){toast('Ошибка импорта: '+err.message)}finally{e.target.value=''}};
-function mergeState(remote){for(const key of ['tasks','lessons','habits','logs']){const map=new Map(state[key].map(x=>[x.id,x]));for(const x of remote[key]||[]){if(!x.id)continue;const old=map.get(x.id);if(!old||Number(x.updatedAt||0)>Number(old.updatedAt||0))map.set(x.id,x)}state[key]=Array.from(map.values())}}
+function mergeState(remote){for(const key of ['tasks','lessons','habits','logs','notes']){const map=new Map(state[key].map(x=>[x.id,x]));for(const x of remote[key]||[]){if(!x.id)continue;const old=map.get(x.id);if(!old||Number(x.updatedAt||0)>Number(old.updatedAt||0))map.set(x.id,x)}state[key]=Array.from(map.values())}}
 function status(msg){$('syncStatus').textContent=msg}
 function readCfg(){const url=$('supabaseUrl').value.trim().replace(/\/$/,'');const key=$('supabaseKey').value.trim();if(!/^https:\/\/[\w.-]+\.supabase\.co$/.test(url)||!key){throw Error('Укажи адрес Supabase и публичный ключ')}cfg={url,key};localStorage.setItem(CFG,JSON.stringify(cfg))}
 async function req(path,opts={}){const r=await fetch(cfg.url+'/auth/v1/'+path,{...opts,headers:{'apikey':cfg.key,'Content-Type':'application/json',...opts.headers}});const data=await r.json().catch(()=>({}));if(!r.ok)throw Error(data.msg||data.error_description||data.message||'Ошибка '+r.status);return data}
 async function db(method,body){const r=await fetch(cfg.url+'/rest/v1/flowhub_state?user_id=eq.'+encodeURIComponent(userId),{method,headers:{apikey:cfg.key,Authorization:'Bearer '+token,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=representation'},body:body&&JSON.stringify(body)});const data=await r.json().catch(()=>[]);if(!r.ok)throw Error(data.message||'Ошибка базы '+r.status);return data}
 async function auth(mode){try{readCfg();const email=$('email').value.trim(),password=$('password').value;if(!email||!password)throw Error('Введи email и пароль');status('Подключение…');const result=await req(mode==='signup'?'signup':'token?grant_type=password',{method:'POST',body:JSON.stringify({email,password})});if(!result.access_token){status('Подтверди email, затем войди.');return}token=result.access_token;userId=result.user?.id;sessionStorage.setItem('fh_session',JSON.stringify({token,userId,refresh:result.refresh_token,expires:Date.now()+result.expires_in*1000}));$('logout').hidden=false;status('Вы вошли. Синхронизация включена.');await sync();render()}catch(e){status(e.message)}}
 $('signup').onclick=()=>auth('signup');$('login').onclick=()=>auth('login');$('logout').onclick=()=>{token=null;userId=null;sessionStorage.removeItem('fh_session');$('logout').hidden=true;status('Вы вышли');render()};
-async function sync(){if(syncBusy||!userId||!token||!navigator.onLine)return;syncBusy=true;try{const rows=await db('GET');if(rows.length){mergeState(rows[0].data||{});localStorage.setItem(KEY,JSON.stringify(state));render()}await db('POST',[{user_id:userId,data:{tasks:state.tasks,lessons:state.lessons,habits:state.habits,logs:state.logs}}]);dirty=false;status('Синхронизировано: '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}))}catch(e){status('Синхронизация: '+e.message)}finally{syncBusy=false}}
+async function sync(){if(syncBusy||!userId||!token||!navigator.onLine)return;syncBusy=true;try{const rows=await db('GET');if(rows.length){mergeState(rows[0].data||{});localStorage.setItem(KEY,JSON.stringify(state));render()}await db('POST',[{user_id:userId,data:{tasks:state.tasks,lessons:state.lessons,habits:state.habits,logs:state.logs,notes:state.notes}}]);dirty=false;status('Синхронизировано: '+new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}))}catch(e){status('Синхронизация: '+e.message)}finally{syncBusy=false}}
 let syncTimeout;function scheduleSync(){if(!userId)return;clearTimeout(syncTimeout);syncTimeout=setTimeout(sync,1800)};
 $('syncNow').onclick=async()=>{try{readCfg();if(!userId)throw Error('Сначала войди');await sync()}catch(e){status(e.message)}};
 try{const ss=JSON.parse(sessionStorage.getItem('fh_session')||'null');if(ss&&ss.expires>Date.now()+20000){token=ss.token;userId=ss.userId;$('logout').hidden=false;status('Авторизован')}}catch{}
@@ -163,6 +163,7 @@ function activateView(view){
 document.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click',()=>{activateView(b.dataset.view)}));
 $('navAdd').addEventListener('click',()=>$('addChoiceDialog').showModal());
 $('choiceTask').addEventListener('click',()=>{$('addChoiceDialog').close();openTask()});
+$('choiceNote').addEventListener('click',()=>{$('addChoiceDialog').close();openNote()});
 $('moreSchedule').addEventListener('click',()=>activateView('schedule'));
 $('moreHabits').addEventListener('click',()=>activateView('habits'));
 
@@ -181,8 +182,15 @@ $('taskMenu').onclick=()=>$('navAdd').click();
 function filterVisibleTasks(){const q=$('taskSearchInput').value.trim().toLocaleLowerCase('ru');document.querySelectorAll('#viewTasks .task').forEach(el=>{el.hidden=q&&!el.textContent.toLocaleLowerCase('ru').includes(q)})}
 $('taskSearchButton').onclick=()=>{const wrap=$('taskSearchWrap');wrap.hidden=!wrap.hidden;if(wrap.hidden){$('taskSearchInput').value='';filterVisibleTasks()}else $('taskSearchInput').focus()};
 $('taskSearchInput').addEventListener('input',filterVisibleTasks);
-$('notesSearch').onclick=()=>toast('Поиск появится вместе с редактором заметок');
-$('notesMenu').onclick=()=>toast('Раздел заметок ещё в разработке');
+function renderNotes(){const q=$('noteSearchInput').value.trim().toLocaleLowerCase('ru');const names={study:'Учёба',personal:'Личное',list:'Списки'};const found=state.notes.filter(n=>!n.deleted&&(selectedNoteFilter==='all'||n.category===selectedNoteFilter)&&(!q||(n.title+' '+n.body).toLocaleLowerCase('ru').includes(q))).sort((a,b)=>Number(!!b.pinned)-Number(!!a.pinned)||(b.updatedAt||0)-(a.updatedAt||0));$('notesList').innerHTML=found.length?found.map(n=>'<button type="button" class="note-card" data-note-open="'+esc(n.id)+'"><span class="note-card-meta">'+(n.pinned?'📌 · ':'')+(names[n.category]||'Личное')+'</span><strong>'+esc(n.title||'Без названия')+'</strong><span class="note-card-body">'+esc((n.body||'').slice(0,160))+'</span></button>').join(''):'<div class="empty">Заметок пока нет. Нажми «+», чтобы создать.</div>'}
+function openNote(id){editingNote=id||null;const n=state.notes.find(x=>x.id===id&&!x.deleted);$('noteTitle').textContent=n?'Редактировать заметку':'Новая заметка';$('noteName').value=n?.title||'';$('noteBody').value=n?.body||'';$('noteCategory').value=n?.category||'study';$('notePinned').checked=!!n?.pinned;$('noteDelete').hidden=!n;$('noteDialog').showModal()}
+$('notesList').onclick=e=>{const b=e.target.closest('[data-note-open]');if(b)openNote(b.dataset.noteOpen)};
+document.querySelectorAll('[data-note-filter]').forEach(b=>b.onclick=()=>{selectedNoteFilter=b.dataset.noteFilter;document.querySelectorAll('[data-note-filter]').forEach(x=>x.classList.toggle('selected',x===b));renderNotes()});
+$('notesSearch').onclick=()=>{const input=$('noteSearchInput');input.hidden=!input.hidden;if(!input.hidden)input.focus();else{input.value='';renderNotes()}};
+$('noteSearchInput').oninput=renderNotes;
+$('notesMenu').onclick=()=>openNote();
+$('noteForm').onsubmit=e=>{e.preventDefault();const title=$('noteName').value.trim(),body=$('noteBody').value.trim();if(!title&&!body){toast('Заполни заголовок или текст');return}const n=state.notes.find(x=>x.id===editingNote);const data={title,body,category:$('noteCategory').value,pinned:$('notePinned').checked,updatedAt:Date.now()};if(n)Object.assign(n,data);else state.notes.push({id:uid(),...data});$('noteDialog').close();save()};
+$('noteDelete').onclick=()=>{const n=state.notes.find(x=>x.id===editingNote);if(n){n.deleted=true;n.updatedAt=Date.now();$('noteDialog').close();save()}};
 
 render();if(userId)sync();
 })();
