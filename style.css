@@ -197,3 +197,18 @@ dialog .row{min-width:0}
 .task-tabs+[role=tabpanel] .task-list{margin-top:0}
 [data-task-panel] .task-list{margin-top:0}
 @media(prefers-reduced-motion:reduce){.task-tab{transition:none}}
+
+/* Clean per-view headers matching the original mockup */
+.screen-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:25px 0 17px}
+.screen-header h1{font-size:25px;letter-spacing:-.8px;margin:0;font-weight:750}
+.screen-header .date{font-size:12px;color:var(--muted);margin-top:4px}
+.screen-actions{display:flex;align-items:center;gap:5px}
+.screen-action,.screen-header #settings{width:39px;height:39px;border:0;border-radius:11px;background:transparent;display:grid;place-items:center;color:var(--text);font-size:23px}
+.screen-action:active,.screen-header #settings:active{background:var(--accent-soft)}
+#viewTasks .tasks,#viewHabits .habits{margin-top:0}
+#viewSchedule .schedule{margin-top:0}
+#viewSchedule .schedule>.section-title h2{display:none}
+#viewSchedule .schedule>.section-title{justify-content:flex-end}
+.notes-page{padding-top:0}
+#taskSearchWrap{margin-bottom:12px}
+#taskSearchInput{width:100%;box-sizing:border-box;padding:11px 13px;background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:12px}
