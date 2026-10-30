@@ -71,3 +71,15 @@ dialog{border-radius:17px}
 .glance-item strong{font-size:13px;font-weight:680;overflow-wrap:anywhere}
 .glance-detail{font-size:11px;color:var(--muted);overflow-wrap:anywhere}
 @media(max-width:340px){.day-glance{grid-template-columns:1fr}}
+
+/* Mobile 2.0: bottom tab navigation */
+.app{padding-bottom:173px}
+.bottom{z-index:5;padding:10px max(18px,env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom));background:var(--bg);border-top:1px solid var(--border)}
+.bottom-inner{width:100%;max-width:644px;display:grid;gap:8px}
+.bottom-nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+.nav-tab{border:0;background:transparent;border-radius:10px;color:var(--muted);padding:6px 3px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;min-height:39px}
+.nav-tab span{font-size:19px;line-height:1}
+.nav-tab.active{background:var(--accent-soft);color:var(--accent);font-weight:750}
+[data-view][hidden]{display:none!important}
+.logo{font-size:16px;font-weight:900;letter-spacing:-2px;font-style:italic}
+@media(max-width:370px){.bottom{padding-left:13px;padding-right:13px}}
