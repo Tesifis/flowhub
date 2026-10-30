@@ -129,7 +129,8 @@ function activateView(view){
  window.scrollTo(0,0);
 }
 document.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click',()=>{activateView(b.dataset.view)}));
-$('navAdd').addEventListener('click',()=>openTask());
+$('navAdd').addEventListener('click',()=>$('addChoiceDialog').showModal());
+$('choiceTask').addEventListener('click',()=>{$('addChoiceDialog').close();openTask()});
 $('moreSchedule').addEventListener('click',()=>activateView('schedule'));
 $('moreHabits').addEventListener('click',()=>activateView('habits'));
 
