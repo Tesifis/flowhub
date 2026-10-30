@@ -40,7 +40,7 @@ function changeTheme(){const mode=state.theme==='system'?(matchMedia('(prefers-c
 $('themeSelect').onchange=e=>{state.theme=e.target.value;save()};
 function scheduleStatus(lessons,d){const today=d===new Date().getDay(),t=new Date().toTimeString().slice(0,5);if(!today)return '';if(lessons.start<=t&&t<lessons.end)return 'Сейчас идёт';if(lessons.start>t)return 'Далее';return ''}
 function render(){changeTheme();const dt=new Date();$('date').textContent=new Intl.DateTimeFormat('ru-RU',{weekday:'long',day:'numeric',month:'long'}).format(dt);const open=state.tasks.filter(t=>!t.deleted&&!t.done);$('hello').textContent='Главная';
-$('days').innerHTML=[1,2,3,4,5,6,0].map(d=>`<button data-day="${d}" class="${d===selectedDay?'active':''} ${d===dt.getDay()?'current':''}">${days[d]}</button>`).join('');
+$('days').innerHTML=[1,2,3,4,5,6,0].map(d=>{const date=new Date(dt.getFullYear(),dt.getMonth(),dt.getDate()+((d-dt.getDay()+7)%7));return `<button data-day="${d}" class="${d===selectedDay?'active':''} ${d===dt.getDay()?'current':''}"><span>${days[d]}</span><strong>${date.getDate()}</strong></button>`}).join('');
 const nowMin=dt.getHours()*60+dt.getMinutes();
 const upcomingLessons=[];
 for(let offset=0;offset<7;offset++){
