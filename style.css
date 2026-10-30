@@ -302,3 +302,6 @@ dialog .row{min-width:0}
 #viewSchedule .week-switch button{background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:10px;min-width:38px;min-height:38px;font-size:25px}
 #weekLabel{color:var(--text);font-size:12px;text-align:center;font-weight:650}
 #scheduleSwipe{touch-action:pan-y}
+
+/* Notes */
+.note-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin:14px 0}.note-tabs button{border:1px solid var(--border);border-radius:10px;background:var(--panel);color:var(--muted);padding:10px 3px;font-size:12px}.note-tabs button.selected{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}.notes-list{display:grid;gap:10px;margin-top:12px}.note-card{display:flex;flex-direction:column;gap:7px;text-align:left;border:1px solid var(--border);border-radius:14px;background:var(--panel);color:var(--text);padding:15px;min-width:0}.note-card strong{font-size:15px}.note-card-meta{font-size:11px;color:var(--accent)}.note-card-body{font-size:12px;color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere}.note-pin{display:flex;align-items:center;gap:10px}.more-import{display:block;padding:12px 16px;color:var(--muted);font-size:12px;border-top:1px solid var(--border)}#noteBody{resize:vertical;min-height:150px}
