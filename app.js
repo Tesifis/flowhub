@@ -36,10 +36,10 @@ document.querySelector('.task-tabs').addEventListener('keydown',event=>{
 
 const toast=(msg)=>{const x=$('toast');x.textContent=msg;x.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>x.classList.remove('show'),3000)};
 function save(){localStorage.setItem(KEY,JSON.stringify(state));dirty=true;render();scheduleSync()}
-function changeTheme(){const mode=state.theme==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):state.theme;document.documentElement.dataset.theme=mode;$('themeSelect').value=state.theme;$('theme').innerHTML=mode==='dark'?'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.5A8.5 8.5 0 0 1 8.5 4 8.5 8.5 0 1 0 20 15.5z"/></svg>';}
-$('theme').onclick=()=>{state.theme=state.theme==='dark'?'light':'dark';save()};$('themeSelect').onchange=e=>{state.theme=e.target.value;save()};
+function changeTheme(){const mode=state.theme==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):state.theme;document.documentElement.dataset.theme=mode;$('themeSelect').value=state.theme;}
+$('themeSelect').onchange=e=>{state.theme=e.target.value;save()};
 function scheduleStatus(lessons,d){const today=d===new Date().getDay(),t=new Date().toTimeString().slice(0,5);if(!today)return '';if(lessons.start<=t&&t<lessons.end)return 'Сейчас идёт';if(lessons.start>t)return 'Далее';return ''}
-function render(){changeTheme();const dt=new Date();$('date').textContent=new Intl.DateTimeFormat('ru-RU',{weekday:'long',day:'numeric',month:'long'}).format(dt);const open=state.tasks.filter(t=>!t.deleted&&!t.done);$('hello').textContent=dt.getHours()<5?'Доброй ночи!':dt.getHours()<12?'Доброе утро!':dt.getHours()<18?'Добрый день!':'Добрый вечер!';
+function render(){changeTheme();const dt=new Date();$('date').textContent=new Intl.DateTimeFormat('ru-RU',{weekday:'long',day:'numeric',month:'long'}).format(dt);const open=state.tasks.filter(t=>!t.deleted&&!t.done);$('hello').textContent='Главная';
 $('days').innerHTML=[1,2,3,4,5,6,0].map(d=>`<button data-day="${d}" class="${d===selectedDay?'active':''} ${d===dt.getDay()?'current':''}">${days[d]}</button>`).join('');
 const nowMin=dt.getHours()*60+dt.getMinutes();
 const upcomingLessons=[];
@@ -137,6 +137,14 @@ $('homeAllHabits').addEventListener('click',()=>activateView('habits'));$('nextL
 $('homeTaskList').addEventListener('change',e=>{const x=e.target.closest('[data-home-check]');if(!x)return;const t=state.tasks.find(t=>t.id===x.dataset.homeCheck&&!t.deleted);if(t){t.done=x.checked;t.updatedAt=Date.now();save();}});
 
 $('moreSettings').addEventListener('click',()=>$('settings').click());
+$('scheduleCalendar').onclick=()=>{selectedDay=new Date().getDay();render()};
+$('scheduleMenu').onclick=()=>$('editSchedule').click();
+$('taskMenu').onclick=()=>$('navAdd').click();
+function filterVisibleTasks(){const q=$('taskSearchInput').value.trim().toLocaleLowerCase('ru');document.querySelectorAll('#viewTasks .task').forEach(el=>{el.hidden=q&&!el.textContent.toLocaleLowerCase('ru').includes(q)})}
+$('taskSearchButton').onclick=()=>{const wrap=$('taskSearchWrap');wrap.hidden=!wrap.hidden;if(wrap.hidden){$('taskSearchInput').value='';filterVisibleTasks()}else $('taskSearchInput').focus()};
+$('taskSearchInput').addEventListener('input',filterVisibleTasks);
+$('notesSearch').onclick=()=>toast('Поиск появится вместе с редактором заметок');
+$('notesMenu').onclick=()=>toast('Раздел заметок ещё в разработке');
 
 render();if(userId)sync();
 })();
