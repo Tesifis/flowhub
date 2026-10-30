@@ -1,9 +1,9 @@
-const CACHE='flowhub-shell-v31';
+const CACHE='flowhub-shell-v32';
 const SHELL=['./','./index.html','./style.css','./app.js','./manifest.webmanifest','./icon.svg'];
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)));
-  self.skipWaiting();
 });
+self.addEventListener('message',event=>{if(event.data&&event.data.type==='SKIP_WAITING')self.skipWaiting()});
 self.addEventListener('activate',event=>{
   event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE&&key.startsWith('flowhub-shell-')).map(key=>caches.delete(key)))));
   self.clients.claim();
