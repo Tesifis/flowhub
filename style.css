@@ -96,3 +96,5 @@ dialog{border-radius:17px}
 .habit-ring{background:conic-gradient(#55c7a0 var(--progress),var(--border) var(--progress))}
 .home-section-title{margin-top:25px}.dashboard>.task-list{margin-top:10px}.dashboard .panel.schedule{margin-top:10px}.dashboard .schedule .weekdays{margin-top:0}
 @media(max-width:370px){.metric-card{padding:11px}.dashboard-heading h1{font-size:23px}}
+
+.schedule-week{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;font-weight:700}.schedule-week button{font-size:11px;text-align:right}.dialog-body h3{font-size:14px;margin:0}.dialog-body textarea{resize:vertical;min-height:90px}
