@@ -186,3 +186,14 @@ dialog .row{min-width:0}
 .near-task-details{display:grid;gap:3px;min-width:0}
 .near-task-details small{color:var(--muted);font-size:11px}
 @media(max-width:370px){#viewHome .intro h1{font-size:26px}.overview-meter{min-height:76px}}
+
+/* Compact segmented task categories */
+.tasks-heading{font-size:26px;margin:0 0 18px;letter-spacing:-.8px}
+.task-tabs{display:flex;gap:7px;overflow-x:auto;padding:2px 1px 11px;margin-bottom:8px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.task-tabs::-webkit-scrollbar{display:none}
+.task-tab{white-space:nowrap;flex:0 0 auto;border:1px solid var(--border);border-radius:999px;background:var(--panel);color:var(--muted);padding:10px 13px;font-size:12px;font-weight:650;min-height:40px;transition:background .15s,border-color .15s,color .15s}
+.task-tab.is-selected{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+.task-tab span:not(:empty){font-size:10px;margin-left:3px;opacity:.8}
+.task-tabs+[role=tabpanel] .task-list{margin-top:0}
+[data-task-panel] .task-list{margin-top:0}
+@media(prefers-reduced-motion:reduce){.task-tab{transition:none}}
