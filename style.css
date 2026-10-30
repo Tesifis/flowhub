@@ -281,3 +281,13 @@ dialog .row{min-width:0}
 .habit-week button:disabled{opacity:.3;cursor:default}
 #viewTasks .task{padding-left:18px;padding-right:12px}
 #viewTasks .task::after{left:0;right:auto}
+
+/* Visual habit icon picker, consistent SVG iconography */
+.icon-picker{border:0;padding:0;margin:0;min-width:0}
+.icon-picker legend{font-size:13px;font-weight:650;margin-bottom:9px}
+.habit-icon-choices{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.habit-icon-choice{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-width:0;min-height:82px;border:1px solid var(--border);border-radius:12px;background:var(--bg);color:var(--muted);font-size:11px;padding:8px 3px}
+.habit-icon-choice.is-selected{border-color:var(--accent);background:var(--accent-soft);color:var(--text)}
+.habit-icon svg{width:22px;height:22px;display:block}
+.habit-icon-choice .habit-icon{width:36px;height:36px}
+@media(max-width:360px){.habit-icon-choices{gap:5px}.habit-icon-choice{font-size:10px}}
