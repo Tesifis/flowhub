@@ -175,7 +175,8 @@ $('homeTaskList').addEventListener('change',e=>{const x=e.target.closest('[data-
 document.querySelectorAll('[data-theme-choice]').forEach(b=>b.addEventListener('click',()=>{state.theme=b.dataset.themeChoice;save()}));
 $('moreAccount').onclick=()=>$('settings').click();
 $('moreNotifications').onclick=()=>toast('Уведомления появятся в следующем обновлении');
-$('moreBackup').onclick=()=>$('exportData').click();
+$('moreBackup').onclick=()=>$('dataDialog').showModal();
+$('importDataButton').onclick=()=>$('importData').click();
 $('scheduleCalendar').onclick=()=>{weekOffset=0;selectedDay=new Date().getDay();render()};
 $('scheduleMenu').onclick=()=>$('editSchedule').click();
 $('taskMenu').onclick=()=>$('navAdd').click();
