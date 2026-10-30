@@ -15,8 +15,26 @@ function save(){localStorage.setItem(KEY,JSON.stringify(state));dirty=true;rende
 function changeTheme(){const mode=state.theme==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):state.theme;document.documentElement.dataset.theme=mode;$('themeSelect').value=state.theme;$('theme').innerHTML=mode==='dark'?'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.5A8.5 8.5 0 0 1 8.5 4 8.5 8.5 0 1 0 20 15.5z"/></svg>';}
 $('theme').onclick=()=>{state.theme=state.theme==='dark'?'light':'dark';save()};$('themeSelect').onchange=e=>{state.theme=e.target.value;save()};
 function scheduleStatus(lessons,d){const today=d===new Date().getDay(),t=new Date().toTimeString().slice(0,5);if(!today)return '';if(lessons.start<=t&&t<lessons.end)return 'Сейчас идёт';if(lessons.start>t)return 'Далее';return ''}
-function render(){changeTheme();const dt=new Date();$('date').textContent=new Intl.DateTimeFormat('ru-RU',{weekday:'long',day:'numeric',month:'long'}).format(dt);const open=state.tasks.filter(t=>!t.deleted&&!t.done);$('summary').textContent=`${open.filter(t=>t.due===nowday()).length} дел на сегодня · ${state.habits.filter(h=>!h.deleted).length} привычек`;
+function render(){changeTheme();const dt=new Date();$('date').textContent=new Intl.DateTimeFormat('ru-RU',{weekday:'long',day:'numeric',month:'long'}).format(dt);const open=state.tasks.filter(t=>!t.deleted&&!t.done);$('hello').textContent=dt.getHours()<5?'Доброй ночи!':dt.getHours()<12?'Доброе утро!':dt.getHours()<18?'Добрый день!':'Добрый вечер!';
 $('days').innerHTML=[1,2,3,4,5,6,0].map(d=>`<button data-day="${d}" class="${d===selectedDay?'active':''} ${d===dt.getDay()?'current':''}">${days[d]}</button>`).join('');
+const nowMin=dt.getHours()*60+dt.getMinutes();
+const upcomingLessons=[];
+for(let offset=0;offset<7;offset++){
+ const date=new Date(dt);date.setDate(dt.getDate()+offset);
+ for(const l of state.lessons.filter(x=>!x.deleted&&Number(x.day)===date.getDay())){
+  const [hr,min]=String(l.start||'').split(':').map(Number);
+  const [endHr,endMin]=String(l.end||'').split(':').map(Number);
+  const begins=hr*60+min,ends=endHr*60+endMin;
+  if(!Number.isFinite(begins)||!Number.isFinite(ends))continue;
+  if(offset===0&&ends<=nowMin)continue;
+  upcomingLessons.push({lesson:l,offset,begins,now:offset===0&&begins<=nowMin});
+ }
+}
+upcomingLessons.sort((a,b)=>a.offset-b.offset||a.begins-b.begins);
+const next=upcomingLessons[0];
+$('nextLessonKicker').textContent=next?(next.now?'Сейчас идёт':next.offset===0?'Следующая пара':next.offset===1?'Завтра':'Ближайшая пара'):'Расписание';
+$('nextLessonName').textContent=next?next.lesson.name:'Пар нет';
+$('nextLessonMeta').textContent=next?(next.offset===0?'Сегодня':next.offset===1?'Завтра':days[(dt.getDay()+next.offset)%7])+' · '+next.lesson.start+'–'+next.lesson.end+(next.lesson.room?' · '+next.lesson.room:''):'На ближайшую неделю занятий нет';
 const lessons=state.lessons.filter(x=>!x.deleted&&x.day===selectedDay).sort((a,b)=>a.start.localeCompare(b.start));
 $('scheduleList').innerHTML=lessons.length?lessons.map(l=>`<div class="lesson ${scheduleStatus(l,selectedDay)==='Сейчас идёт'?'now':''}"><div class="lesson-time">${esc(l.start)}<br>${esc(l.end)}</div><div><div class="lesson-name">${esc(l.name)}</div><div class="lesson-room">${esc(l.room)}</div>${scheduleStatus(l,selectedDay)?`<div class="lesson-status">${scheduleStatus(l,selectedDay)}</div>`:''}</div></div>`).join(''):'<div class="empty">На этот день пары не добавлены</div>';
 const today=nowday(), active=state.tasks.filter(t=>!t.deleted&&!t.done),done=state.tasks.filter(t=>!t.deleted&&t.done).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));const todayTasks=active.filter(t=>t.due&&t.due<=today),up=active.filter(t=>t.due&&t.due>today).sort((a,b)=>a.due.localeCompare(b.due)),none=active.filter(t=>!t.due);$('todayCount').textContent=todayTasks.length;
@@ -29,14 +47,15 @@ function setRing(id,progress,completed,total){
  const pct=total?Math.round(progress):0;
  $(id).style.setProperty('--progress',pct+'%');
  $(id).setAttribute('aria-label',pct+'% выполнено');
- $(id+'Value').textContent=pct+'%';
+ $(id+'Value').textContent='';
  $(id+'Details').textContent=completed+' из '+total;
 }
 setRing('taskRing',dailyTasks.length?100*completedDaily/dailyTasks.length:0,completedDaily,dailyTasks.length);
 setRing('habitRing',activeHabits.length?100*activeHabits.reduce((sum,h)=>sum+Math.min(1,valueFor(h.id,today)/Math.max(1,Number(h.target)||1)),0)/activeHabits.length:0,completedHabits,activeHabits.length);
-$('homeTaskCount').textContent=todayTasks.length;
-$('homeTaskList').innerHTML=todayTasks.length?todayTasks.slice(0,3).map(t=>`<div class="home-task"><input class="task-check" type="checkbox" data-home-check="${esc(t.id)}" aria-label="Выполнить ${esc(t.name)}"><span class="home-task-name">${esc(t.name)}</span></div>`).join(''):'<div class="home-empty">На сегодня дел нет</div>';
-$('homeHabitList').innerHTML=state.habits.filter(h=>!h.deleted).slice(0,3).map(h=>{const v=valueFor(h.id,today),pct=Math.min(100,Math.round(v/Math.max(1,h.target)*100));return `<div class="home-habit"><div class="small-ring" style="--progress:${pct}%" role="img" aria-label="${esc(h.name)}: ${pct}%"><span>${pct}%</span></div><div class="home-habit-label"><span>${esc(h.name)}</span><small>${v} / ${h.target} ${h.unit==='done'?'':esc(h.unit)}</small></div></div>`}).join('')||'<div class="home-empty">Добавь привычку, чтобы видеть прогресс</div>';
+const tomorrow=dayAdd(today,1);
+const nearTasks=active.filter(t=>t.due&&t.due<=tomorrow).sort((a,b)=>a.due.localeCompare(b.due));
+$('homeTaskCount').textContent=nearTasks.length;
+$('homeTaskList').innerHTML=nearTasks.length?nearTasks.slice(0,5).map(t=>`<div class="home-task"><input class="task-check" type="checkbox" data-home-check="${esc(t.id)}" aria-label="Выполнить ${esc(t.name)}"><div class="near-task-details"><span class="home-task-name">${esc(t.name)}</span><small>${t.due<today?'Просрочено':t.due===today?'Сегодня':'Завтра'}</small></div></div>`).join(''):'<div class="home-empty">На сегодня и завтра задач нет</div>';
 $('todayList').innerHTML=tasksHtml(todayTasks);$('upcomingList').innerHTML=tasksHtml(up);$('somedayList').innerHTML=tasksHtml(none);$('doneCount').textContent=done.length;$('doneList').innerHTML=tasksHtml(done);renderHabits();$('syncBadge').textContent=userId?'Облачная синхронизация подключена · офлайн доступ':'Данные на устройстве · офлайн доступ';}
 function renderHabits(){const today=nowday(),habits=state.habits.filter(h=>!h.deleted);$('habitCount').textContent=habits.length;
 $('habitList').innerHTML=habits.length?habits.map(h=>{const v=valueFor(h.id,today),pct=Math.min(100,Math.round(v/h.target*100));return `<div class="habit"><div class="habit-top"><div><div class="habit-name">${esc(h.name)}</div><div class="habit-sub">${v} / ${h.target} ${h.unit==='done'?'выполнено':esc(h.unit)} сегодня</div></div><div class="habit-actions"><button data-log="${h.id}" aria-label="Отметить ${esc(h.name)}">＋</button><button data-habit-edit="${h.id}" aria-label="Изменить ${esc(h.name)}">✎</button></div></div><div class="habit-progress"><span style="width:${pct}%"></span></div></div>`}).join(''):'<div class="empty">Добавь первую привычку, например «Чтение».</div>';
@@ -87,10 +106,10 @@ function activateView(view){
 document.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click',()=>{activateView(b.dataset.view)}));
 $('navAdd').addEventListener('click',()=>openTask());
 $('moreNotes').addEventListener('click',()=>activateView('notes'));
-$('quickNotes').addEventListener('click',()=>activateView('notes'));
+
 $('quickTasks').addEventListener('click',()=>activateView('tasks'));
 $('homeAllTasks').addEventListener('click',()=>activateView('tasks'));
-$('homeAllHabits').addEventListener('click',()=>activateView('habits'));
+$('homeAllHabits').addEventListener('click',()=>activateView('habits'));$('nextLesson').addEventListener('click',()=>activateView('schedule'));
 $('homeTaskList').addEventListener('change',e=>{const x=e.target.closest('[data-home-check]');if(!x)return;const t=state.tasks.find(t=>t.id===x.dataset.homeCheck&&!t.deleted);if(t){t.done=x.checked;t.updatedAt=Date.now();save();}});
 
 $('moreSettings').addEventListener('click',()=>$('settings').click());
