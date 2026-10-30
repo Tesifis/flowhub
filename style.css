@@ -100,3 +100,15 @@ button:active{opacity:.86}
 .lesson.now{position:relative}
 .lesson.now:before{content:"";width:3px;height:calc(100% - 16px);position:absolute;left:0;top:8px;border-radius:8px;background:var(--accent)}
 @media(prefers-reduced-motion:reduce){.nav-item,.nav-add{transition:none}}
+
+/* Home dashboard: lightweight, actionable previews */
+.home-preview{margin-top:23px}
+.home-task-list,.home-habit-list{margin-top:11px;display:grid;gap:8px}
+.home-task{display:flex;align-items:center;gap:12px;padding:13px 14px;background:var(--panel);border:1px solid var(--border);border-radius:13px;min-height:52px}
+.home-task-name{font-weight:600;font-size:13px;overflow-wrap:anywhere}
+.home-habit-list{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:15px;gap:14px}
+.home-habit-label{display:flex;justify-content:space-between;gap:10px;font-size:13px;font-weight:600;margin-bottom:8px}
+.home-habit-label small{font-size:11px;font-weight:500;color:var(--muted);text-align:right}
+.home-empty{background:var(--panel);border:1px dashed var(--border);border-radius:13px;padding:14px;color:var(--muted);font-size:12px}
+.home-preview .text-button{font-size:12px}
+.home-preview .habit-progress{height:5px}
