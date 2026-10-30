@@ -274,3 +274,10 @@ dialog .row{min-width:0}
 .more-themes button{min-width:0;border:0;border-radius:9px;background:none;color:var(--muted);padding:11px 3px;font-size:12px}
 .more-themes button.selected{background:var(--accent-soft);color:var(--accent);font-weight:750}
 .more-version{display:flex;justify-content:space-between;gap:8px;color:var(--muted);font-size:11px;padding:3px 3px 20px}
+
+/* Habits: selectable weekday pills */
+.habit-week button{min-width:0;min-height:42px;border:0;border-radius:10px;background:transparent;color:var(--muted);font-size:12px;cursor:pointer}
+.habit-week button.selected{color:#fff;background:#7974f5;font-weight:700}
+.habit-week button:disabled{opacity:.3;cursor:default}
+#viewTasks .task{padding-left:18px;padding-right:12px}
+#viewTasks .task::after{left:0;right:auto}
