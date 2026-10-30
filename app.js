@@ -36,7 +36,7 @@ document.querySelector('.task-tabs').addEventListener('keydown',event=>{
 
 const toast=(msg)=>{const x=$('toast');x.textContent=msg;x.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>x.classList.remove('show'),3000)};
 function save(){localStorage.setItem(KEY,JSON.stringify(state));dirty=true;render();scheduleSync()}
-function changeTheme(){const mode=state.theme==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):state.theme;document.documentElement.dataset.theme=mode;$('themeSelect').value=state.theme;}
+function changeTheme(){const mode=state.theme==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):state.theme;document.documentElement.dataset.theme=mode;$('themeSelect').value=state.theme;document.querySelectorAll('[data-theme-choice]').forEach(b=>{const on=b.dataset.themeChoice===state.theme;b.classList.toggle('selected',on);b.setAttribute('aria-pressed',String(on))});}
 $('themeSelect').onchange=e=>{state.theme=e.target.value;save()};
 function scheduleStatus(lessons,d){const today=d===new Date().getDay(),t=new Date().toTimeString().slice(0,5);if(!today)return '';if(lessons.start<=t&&t<lessons.end)return 'Сейчас идёт';if(lessons.start>t)return 'Далее';return ''}
 function render(){changeTheme();const dt=new Date();$('date').textContent=new Intl.DateTimeFormat('ru-RU',{weekday:'long',day:'numeric',month:'long'}).format(dt);const open=state.tasks.filter(t=>!t.deleted&&!t.done);$('hello').textContent='Главная';
@@ -80,7 +80,7 @@ const tomorrow=dayAdd(today,1);
 const nearTasks=active.filter(t=>t.due&&t.due<=tomorrow).sort((a,b)=>a.due.localeCompare(b.due));
 $('homeTaskCount').textContent=nearTasks.length;
 $('homeTaskList').innerHTML=nearTasks.length?nearTasks.slice(0,5).map(t=>`<div class="home-task"><input class="task-check" type="checkbox" data-home-check="${esc(t.id)}" aria-label="Выполнить ${esc(t.name)}"><div class="near-task-details"><span class="home-task-name">${esc(t.name)}</span><small>${t.due<today?'Просрочено':t.due===today?'Сегодня':'Завтра'}</small></div></div>`).join(''):'<div class="home-empty">На сегодня и завтра задач нет</div>';
-$('todayList').innerHTML=tasksHtml(todayTasks);$('upcomingList').innerHTML=tasksHtml(up);$('somedayList').innerHTML=tasksHtml(none);$('doneCount').textContent=done.length;$('doneList').innerHTML=tasksHtml(done);renderHabits();$('syncBadge').textContent=userId?'Облачная синхронизация подключена · офлайн доступ':'Данные на устройстве · офлайн доступ';}
+$('todayList').innerHTML=tasksHtml(todayTasks);$('upcomingList').innerHTML=tasksHtml(up);$('somedayList').innerHTML=tasksHtml(none);$('doneCount').textContent=done.length;$('doneList').innerHTML=tasksHtml(done);renderHabits();$('moreAccountStatus').textContent=userId?'Авторизован':'Не выполнен вход';$('moreSyncStatus').textContent=userId?'Подключено':'Локально';$('syncBadge').textContent=userId?'Облачная синхронизация подключена · офлайн доступ':'Данные на устройстве · офлайн доступ';}
 function renderHabits(){const today=nowday(),habits=state.habits.filter(h=>!h.deleted);$('habitCount').textContent=habits.length;
 $('habitWeek').innerHTML=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].map((label,i)=>`<span class="${(new Date().getDay()+6)%7===i?'selected':''}">${label}</span>`).join('');
 $('habitList').innerHTML=habits.length?habits.map(h=>{const v=valueFor(h.id,today),pct=Math.min(100,Math.round(v/h.target*100));const icon=h.icon||'habit';const symbols={book:'▤',sport:'✦',water:'◈',language:'文',study:'✎',music:'♫',health:'✚',habit:'✓'};return `<div class="habit"><div class="habit-top"><div class="habit-identity"><span class="habit-icon habit-icon-${esc(icon)}" aria-hidden="true">${symbols[icon]||'✓'}</span><div><div class="habit-name">${esc(h.name)}</div><div class="habit-sub">${v} / ${h.target} ${h.unit==='done'?'выполнено':esc(h.unit)} сегодня</div></div><div class="habit-actions"><button data-log="${h.id}" aria-label="Отметить ${esc(h.name)}">＋</button><button data-habit-edit="${h.id}" aria-label="Изменить ${esc(h.name)}">✎</button></div></div><div class="habit-progress"><span style="width:${pct}%"></span></div></div>`}).join(''):'<div class="empty">Добавь первую привычку, например «Чтение».</div>';
@@ -139,7 +139,12 @@ $('homeAllTasks').addEventListener('click',()=>activateView('tasks'));
 $('homeAllHabits').addEventListener('click',()=>activateView('habits'));$('nextLesson').addEventListener('click',()=>activateView('schedule'));
 $('homeTaskList').addEventListener('change',e=>{const x=e.target.closest('[data-home-check]');if(!x)return;const t=state.tasks.find(t=>t.id===x.dataset.homeCheck&&!t.deleted);if(t){t.done=x.checked;t.updatedAt=Date.now();save();}});
 
-$('moreSettings').addEventListener('click',()=>$('settings').click());
+document.querySelectorAll('[data-theme-choice]').forEach(b=>b.addEventListener('click',()=>{state.theme=b.dataset.themeChoice;save()}));
+$('moreProfile').onclick=()=>$('settings').click();
+$('moreSync').onclick=()=>$('settings').click();
+$('moreNotifications').onclick=()=>toast('Уведомления появятся в следующем обновлении');
+$('moreOffline').onclick=()=>toast('FlowHub хранит данные на устройстве и работает офлайн после загрузки');
+$('moreBackup').onclick=()=>$('exportData').click();
 $('scheduleCalendar').onclick=()=>{selectedDay=new Date().getDay();render()};
 $('scheduleMenu').onclick=()=>$('editSchedule').click();
 $('taskMenu').onclick=()=>$('navAdd').click();
