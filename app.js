@@ -62,5 +62,17 @@ $('syncNow').onclick=async()=>{try{readCfg();if(!userId)throw Error('Снача�
 try{const ss=JSON.parse(sessionStorage.getItem('fh_session')||'null');if(ss&&ss.expires>Date.now()+20000){token=ss.token;userId=ss.userId;$('logout').hidden=false;status('Авторизован')}}catch{}
 window.addEventListener('online',sync);document.addEventListener('visibilitychange',()=>{if(!document.hidden)sync()});setInterval(()=>{if(!document.hidden){render();sync()}},60000);
 if('serviceWorker' in navigator&&location.protocol!=='file:')window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+
+function activateView(view){
+ for(const n of ['home','tasks','notes','more','habits']){const id='view'+n[0].toUpperCase()+n.slice(1);const el=$(id);if(el)el.hidden=n!==view;}
+ document.querySelectorAll('.nav-item').forEach(b=>{const active=b.dataset.view===view||view==='habits'&&b.dataset.view==='more';b.classList.toggle('is-active',active);if(active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
+ window.scrollTo(0,0);
+}
+document.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click',()=>activateView(b.dataset.view)));
+$('navAdd').addEventListener('click',()=>openTask());
+$('moreSchedule').addEventListener('click',()=>{activateView('home');document.querySelector('.schedule').scrollIntoView({behavior:'smooth'});});
+$('moreHabits').addEventListener('click',()=>activateView('habits'));
+$('moreSettings').addEventListener('click',()=>$('settings').click());
+
 render();if(userId)sync();
 })();
