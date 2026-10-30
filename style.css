@@ -333,3 +333,5 @@ dialog .row{min-width:0}
 .activity-legend i.level1{background:color-mix(in srgb,var(--accent) 27%,var(--panel))}
 .activity-legend i.level2{background:color-mix(in srgb,var(--accent) 60%,var(--panel))}
 .activity-legend i.level3{background:var(--accent)}
+
+.activity-month-heading{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.activity-month-heading strong{font-size:15px;text-transform:capitalize}.activity-month-heading span{color:var(--muted);font-size:10px}.activity-grid{touch-action:pan-y;user-select:none}.activity-day.future{opacity:.3}
