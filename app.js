@@ -18,7 +18,8 @@ const matchesWeek=(lesson,date)=>!lesson.week||lesson.week==='all'||lesson.week=
 function moveWeek(delta){weekOffset+=delta;render()}
 
 function switchTaskTab(tab){
- if(!['today','upcoming','someday','done'].includes(tab))return;
+ if(tab==='someday')tab='upcoming';
+ if(!['today','upcoming','done'].includes(tab))return;
  selectedTaskTab=tab;
  document.querySelectorAll('[data-task-tab]').forEach(button=>{
    const active=button.dataset.taskTab===tab;
@@ -72,7 +73,7 @@ $('nextLessonName').textContent=next?next.lesson.name:'Пар нет';
 $('nextLessonMeta').textContent=next?(next.offset===0?'Сегодня':next.offset===1?'Завтра':days[(dt.getDay()+next.offset)%7])+' · '+next.lesson.start+'–'+next.lesson.end+(next.lesson.room?' · '+next.lesson.room:''):'На ближайшую неделю занятий нет';
 const lessons=state.lessons.filter(x=>!x.deleted&&Number(x.day)===selectedDay&&matchesWeek(x,viewedDate)).sort((a,b)=>a.start.localeCompare(b.start));
 $('scheduleList').innerHTML=lessons.length?lessons.map(l=>`<div class="lesson ${(weekOffset===0&&localDay(viewedDate)===nowday()&&scheduleStatus(l,selectedDay)==='Сейчас идёт')?'now':''}"><div class="lesson-time">${esc(l.start)}<br>${esc(l.end)}</div><div><div class="lesson-name">${esc(l.name)}</div><div class="lesson-room">${esc(l.room)}</div>${weekOffset===0&&localDay(viewedDate)===nowday()&&scheduleStatus(l,selectedDay)?`<div class="lesson-status">${scheduleStatus(l,selectedDay)}</div>`:''}</div></div>`).join(''):'<div class="empty">На этот день пары не добавлены</div>';
-const today=nowday(), active=state.tasks.filter(t=>!t.deleted&&!t.done),done=state.tasks.filter(t=>!t.deleted&&t.done).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));const todayTasks=active.filter(t=>t.due&&t.due<=today),up=active.filter(t=>t.due&&t.due>today).sort((a,b)=>a.due.localeCompare(b.due)),none=active.filter(t=>!t.due);$('todayCount').textContent=todayTasks.length;
+const today=nowday(), active=state.tasks.filter(t=>!t.deleted&&!t.done),done=state.tasks.filter(t=>!t.deleted&&t.done).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));const todayTasks=active.filter(t=>t.due&&t.due<=today),up=active.filter(t=>!t.due||t.due>today).sort((a,b)=>(!a.due?1:!b.due?-1:a.due.localeCompare(b.due)));$('todayCount').textContent=todayTasks.length;
 const tasksHtml=a=>a.length?a.map(t=>`<article class="task"><input class="task-check" type="checkbox" data-check="${t.id}" ${t.done?'checked':''} aria-label="Выполнить ${esc(t.name)}"><div class="task-info"><div class="task-name">${esc(t.name)}</div>${t.note?`<div class="task-note">${esc(t.note)}</div>`:''}${t.due?`<div class="task-due">${esc(t.due)}</div>`:''}</div><button class="task-edit" aria-label="Изменить дело" data-edit="${t.id}">✎</button></article>`).join(''):'<div class="empty">Пока ничего нет</div>';
 const dailyTasks=state.tasks.filter(t=>!t.deleted&&t.due&&t.due<=today);
 const completedDaily=dailyTasks.filter(t=>t.done).length;
@@ -91,7 +92,7 @@ const tomorrow=dayAdd(today,1);
 const nearTasks=active.filter(t=>t.due&&t.due<=tomorrow).sort((a,b)=>a.due.localeCompare(b.due));
 $('homeTaskCount').textContent=nearTasks.length;
 $('homeTaskList').innerHTML=nearTasks.length?nearTasks.slice(0,5).map(t=>`<div class="home-task"><input class="task-check" type="checkbox" data-home-check="${esc(t.id)}" aria-label="Выполнить ${esc(t.name)}"><div class="near-task-details"><span class="home-task-name">${esc(t.name)}</span><small>${t.due<today?'Просрочено':t.due===today?'Сегодня':'Завтра'}</small></div></div>`).join(''):'<div class="home-empty">На сегодня и завтра задач нет</div>';
-$('todayList').innerHTML=tasksHtml(todayTasks);$('upcomingList').innerHTML=tasksHtml(up);$('somedayList').innerHTML=tasksHtml(none);$('doneCount').textContent=done.length;$('doneList').innerHTML=tasksHtml(done);renderHabits();$('moreAccountStatus').textContent=userId?'Авторизован':'Не выполнен вход';$('syncBadge').textContent=userId?'Облачная синхронизация подключена · офлайн доступ':'Данные на устройстве · офлайн доступ';}
+$('todayList').innerHTML=tasksHtml(todayTasks);$('upcomingList').innerHTML=tasksHtml(up);$('doneCount').textContent=done.length;$('doneList').innerHTML=tasksHtml(done);renderHabits();$('moreAccountStatus').textContent=userId?'Авторизован':'Не выполнен вход';$('syncBadge').textContent=userId?'Облачная синхронизация подключена · офлайн доступ':'Данные на устройстве · офлайн доступ';}
 const HABIT_ICONS={
 book:'<path d="M12 6c-2.5-1.8-5.2-2-9-1.4v14.6c3.8-.6 6.5-.4 9 1.4 2.5-1.8 5.2-2 9-1.4V4.6c-3.8-.6-6.5-.4-9 1.4z"/><path d="M12 6v14.6"/>',
 sport:'<path d="M6 8v8m-3-6v4m6-8v12m9-10v8m3-6v4m-6-8v12M3 12h18"/>',
