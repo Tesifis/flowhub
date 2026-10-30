@@ -169,3 +169,20 @@ dialog .row{min-width:0}
 .home-habit-label{display:grid;gap:4px;min-width:0;flex:1;margin-bottom:0}
 .home-habit-label small{text-align:left}
 @media(max-width:370px){.overview-meter{gap:7px;padding:10px 7px}.progress-ring{width:47px;height:47px}.overview-meter strong{font-size:12px}.overview-meter small{font-size:9px}}
+
+/* Mobile 2.0: focused home dashboard */
+#viewHome .intro{padding:26px 0 17px}
+#viewHome .intro h1{margin:0;font-size:29px}
+.next-lesson-card{width:100%;position:relative;display:grid;gap:6px;text-align:left;background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:18px;padding:17px 36px 17px 17px;margin:0 0 13px;min-height:95px}
+.next-kicker{color:var(--accent);font-size:12px;font-weight:650}
+.next-lesson-card strong{font-size:16px;line-height:1.35}
+.next-meta{color:var(--muted);font-size:12px}
+.next-chevron{position:absolute;right:17px;top:50%;transform:translateY(-50%);font-size:26px;color:var(--muted)}
+.overview-progress{margin-bottom:26px}
+.overview-meter{color:var(--text);text-align:left;cursor:pointer;min-height:84px}
+.overview-meter:active,.next-lesson-card:active{transform:scale(.99)}
+.progress-ring span{display:none}
+#viewHome .home-preview{margin-top:0}
+.near-task-details{display:grid;gap:3px;min-width:0}
+.near-task-details small{color:var(--muted);font-size:11px}
+@media(max-width:370px){#viewHome .intro h1{font-size:26px}.overview-meter{min-height:76px}}
