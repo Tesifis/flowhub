@@ -421,3 +421,13 @@ dialog.editor-sheet .dialog-body{gap:12px;padding:23px 15px calc(15px + env(safe
 dialog.editor-sheet .modal-head{margin:-23px -15px 0;padding:30px 15px 23px}
 dialog.editor-sheet .dialog-body .form-actions{position:sticky;bottom:calc(-15px - env(safe-area-inset-bottom));z-index:2;background:linear-gradient(180deg,#0c1426dd,#0c1426);padding:12px 0 6px}
 }
+
+dialog.editor-sheet .task-priority{border:0;padding:0;margin:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+dialog.editor-sheet .task-priority legend{font-size:12px;color:#dce6ff;font-weight:650;margin:0 0 9px}
+dialog.editor-sheet .task-priority label{min-width:0;margin:0;display:flex!important;flex-direction:row;align-items:center;justify-content:center;gap:6px;padding:12px 6px;background:#192741;border:1px solid #344666;border-radius:13px;font-size:12px;color:#cbd8f5;cursor:pointer}
+dialog.editor-sheet .task-priority label:has(input:checked){border-color:#70a8ff;box-shadow:0 0 0 1px #70a8ff88;color:white;background:#243758}
+dialog.editor-sheet .task-priority input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+dialog.editor-sheet .priority-dot{width:11px;height:11px;flex:0 0 11px;border-radius:50%;display:inline-block}
+dialog.editor-sheet .priority-dot.low{background:#39ca8b}
+dialog.editor-sheet .priority-dot.medium{background:#ffbc31}
+dialog.editor-sheet .priority-dot.high{background:#fa5e75}
