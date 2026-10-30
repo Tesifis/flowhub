@@ -337,3 +337,6 @@ dialog .row{min-width:0}
 .activity-month-heading{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.activity-month-heading strong{font-size:15px;text-transform:capitalize}.activity-month-heading span{color:var(--muted);font-size:10px}.activity-grid{touch-action:pan-y;user-select:none}.activity-day.future{opacity:.3}
 
 .reminder-toggle{display:flex!important;flex-direction:row!important;align-items:center;gap:10px}.dialog-body .reminder-toggle input{width:18px;flex:0 0 18px}.reminder-time-pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* Hide the scrollbar on touch devices without disabling scrolling. */
+@media (pointer: coarse){html,body,main,*{scrollbar-width:none}html::-webkit-scrollbar,body::-webkit-scrollbar,main::-webkit-scrollbar,*::-webkit-scrollbar{display:none;width:0;height:0}}
