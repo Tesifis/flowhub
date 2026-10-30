@@ -335,3 +335,5 @@ dialog .row{min-width:0}
 .activity-legend i.level3{background:var(--accent)}
 
 .activity-month-heading{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.activity-month-heading strong{font-size:15px;text-transform:capitalize}.activity-month-heading span{color:var(--muted);font-size:10px}.activity-grid{touch-action:pan-y;user-select:none}.activity-day.future{opacity:.3}
+
+.reminder-toggle{display:flex!important;flex-direction:row!important;align-items:center;gap:10px}.dialog-body .reminder-toggle input{width:18px;flex:0 0 18px}.reminder-time-pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}
