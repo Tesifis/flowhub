@@ -63,3 +63,11 @@ dialog{border-radius:17px}
 .footer-note{margin-top:28px}
 @media(min-width:760px){.app{padding-top:10px}.intro{padding:35px 0 29px}}
 @media(max-width:370px){.app{padding-left:13px;padding-right:13px}.bottom{padding-left:13px;padding-right:13px}}
+
+/* Mobile 2.0: компактный обзор дня */
+.day-glance{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:18px}
+.glance-item{display:flex;flex-direction:column;gap:4px;min-width:0;padding:14px;background:var(--panel);border:1px solid var(--border);border-radius:13px}
+.glance-label{font-size:11px;color:var(--muted)}
+.glance-item strong{font-size:13px;font-weight:680;overflow-wrap:anywhere}
+.glance-detail{font-size:11px;color:var(--muted);overflow-wrap:anywhere}
+@media(max-width:340px){.day-glance{grid-template-columns:1fr}}
