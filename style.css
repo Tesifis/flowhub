@@ -212,3 +212,29 @@ dialog .row{min-width:0}
 .notes-page{padding-top:0}
 #taskSearchWrap{margin-bottom:12px}
 #taskSearchInput{width:100%;box-sizing:border-box;padding:11px 13px;background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:12px}
+
+/* Schedule cards and customizable habit visuals */
+#viewSchedule .schedule{border:0;background:transparent;padding:0}
+#viewSchedule .schedule>.section-title{padding:0 1px 4px}
+#viewSchedule .weekdays{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;margin:7px 0 15px}
+#viewSchedule .weekdays button{padding:11px 0;border-radius:10px}
+#viewSchedule .schedule-list{gap:9px}
+#viewSchedule .lesson{position:relative;overflow:hidden;border:1px solid var(--border);border-radius:14px;background:var(--panel);padding:14px 15px 14px 19px;min-height:76px}
+#viewSchedule .lesson:before{content:"";position:absolute;top:0;bottom:0;left:0;width:5px;background:#617df5}
+#viewSchedule .lesson:nth-child(4n+2):before{background:#9567e9}
+#viewSchedule .lesson:nth-child(4n+3):before{background:#58bb85}
+#viewSchedule .lesson:nth-child(4n+4):before{background:#d6ac54}
+#viewSchedule .lesson.now{border-color:var(--accent)}
+#viewSchedule .lesson-time{min-width:83px;font-size:12px;line-height:1.65}
+#viewSchedule .lesson-name{font-size:14px}
+.habit-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin:8px 0 14px}
+.habit-week span{display:grid;place-items:center;padding:11px 2px;font-size:12px;color:var(--muted);border-radius:10px}
+.habit-week span.selected{color:white;background:#7974f5;font-weight:700}
+.habit-identity{display:flex;align-items:center;gap:12px}
+.habit-icon{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;background:#35315a;color:#b8a6ff;font-size:18px;font-weight:750}
+.habit-icon-book,.habit-icon-sport{background:#1d4436;color:#75daa1}
+.habit-icon-water{background:#1a3d5b;color:#67baff}
+.habit-icon-language{background:#543b31;color:#ffb37e}
+.habit-icon-music{background:#3c305c;color:#d5a6ff}
+.habit-icon-study{background:#374163;color:#a8bfff}
+.habit-icon-health{background:#4c303f;color:#f3a3bc}
