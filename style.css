@@ -63,3 +63,275 @@ dialog{border-radius:17px}
 .footer-note{margin-top:28px}
 @media(min-width:760px){.app{padding-top:10px}.intro{padding:35px 0 29px}}
 @media(max-width:370px){.app{padding-left:13px;padding-right:13px}.bottom{padding-left:13px;padding-right:13px}}
+
+/* Mobile 2.0 navigation and screens */
+[hidden]{display:none!important}
+.app{padding-bottom:116px}
+#viewHome,#viewTasks,#viewHabits,#viewNotes,#viewMore{min-height:50vh}
+.page-heading,.notes-page{padding-top:24px}
+.page-heading h1,.notes-page h1{font-size:26px}
+#viewTasks .tasks{margin-top:24px}
+#viewHabits .habits{margin-top:24px}
+.menu-stack{display:grid;gap:9px;margin-top:18px}
+.menu-stack button{background:var(--panel);border:1px solid var(--border);border-radius:13px;padding:18px;color:var(--text);display:flex;align-items:center;justify-content:space-between;text-align:left}
+.menu-stack span{font-size:22px;color:var(--muted)}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;display:grid;grid-template-columns:1fr 1fr 66px 1fr 1fr;align-items:center;gap:1px;padding:9px max(12px,env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom));background:var(--panel);border-top:1px solid var(--border);z-index:5}
+.nav-item{min-width:0;display:flex;align-items:center;flex-direction:column;gap:3px;padding:4px 0;border:0;background:transparent;color:var(--muted);font-size:10px;font-weight:600}
+.nav-item.is-active{color:var(--accent)}
+.nav-glyph{height:24px;font-size:23px;line-height:24px;font-weight:550}
+.nav-add{width:54px;height:54px;border-radius:50%;border:0;background:#7974f5;color:white;font-size:31px;line-height:1;box-shadow:0 7px 17px rgba(92,76,225,.24);justify-self:center;margin-top:-20px}
+.logo{background:none;width:31px;height:31px;border-radius:10px;overflow:hidden}
+.logo img{width:100%;height:100%;display:block}
+@media(min-width:740px){.bottom-nav{left:50%;right:auto;transform:translateX(-50%);width:680px;border:1px solid var(--border);border-radius:18px 18px 0 0}}
+
+/* Mobile 2.0 polish */
+.quick-links{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:19px}
+.quick-links button{background:var(--panel);border:1px solid var(--border);border-radius:14px;min-height:66px;display:flex;align-items:center;gap:9px;padding:12px;color:var(--text);font-size:13px;font-weight:650;text-align:left}
+.quick-symbol{display:grid;place-items:center;width:30px;height:30px;flex-shrink:0;border-radius:9px;background:var(--accent-soft);color:var(--accent);font-size:17px}
+.quick-arrow{margin-left:auto;font-size:22px;color:var(--muted)}
+.nav-glyph{display:grid;place-items:center;width:25px;height:25px}
+.nav-glyph svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.nav-item{transition:color .18s ease}
+.nav-item.is-active .nav-glyph{background:var(--accent-soft);border-radius:8px}
+.nav-add{transition:transform .17s ease}
+.nav-add:active{transform:scale(.93)}
+button:active{opacity:.86}
+.schedule{scroll-margin-top:20px}
+.lesson.now{position:relative}
+.lesson.now:before{content:"";width:3px;height:calc(100% - 16px);position:absolute;left:0;top:8px;border-radius:8px;background:var(--accent)}
+@media(prefers-reduced-motion:reduce){.nav-item,.nav-add{transition:none}}
+
+/* Home dashboard: lightweight, actionable previews */
+.home-preview{margin-top:23px}
+.home-task-list,.home-habit-list{margin-top:11px;display:grid;gap:8px}
+.home-task{display:flex;align-items:center;gap:12px;padding:13px 14px;background:var(--panel);border:1px solid var(--border);border-radius:13px;min-height:52px}
+.home-task-name{font-weight:600;font-size:13px;overflow-wrap:anywhere}
+.home-habit-list{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:15px;gap:14px}
+.home-habit-label{display:flex;justify-content:space-between;gap:10px;font-size:13px;font-weight:600;margin-bottom:8px}
+.home-habit-label small{font-size:11px;font-weight:500;color:var(--muted);text-align:right}
+.home-empty{background:var(--panel);border:1px dashed var(--border);border-radius:13px;padding:14px;color:var(--muted);font-size:12px}
+.home-preview .text-button{font-size:12px}
+.home-preview .habit-progress{height:5px}
+
+/* Mobile 2.0 · visual consistency & motion */
+:root{--motion-fast:150ms;--motion-page:220ms}
+button{-webkit-tap-highlight-color:transparent}
+#theme,#settings{display:grid;place-items:center}
+#theme svg,#settings svg,.quick-symbol svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#theme:hover,#settings:hover{background:var(--accent-soft);border-color:var(--accent-soft)}
+.quick-links button,.menu-stack button,.task,.habit,.home-task,.panel{transition:border-color var(--motion-fast) ease,background-color var(--motion-fast) ease,transform var(--motion-fast) ease}
+.quick-links button:active,.menu-stack button:active{transform:scale(.985)}
+.quick-links button:focus-visible,.nav-item:focus-visible,.nav-add:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.quick-symbol{border-radius:10px}
+.section-title{min-height:27px}
+.home-habit-label{align-items:baseline}
+.habit-progress span{transition:width 250ms ease}
+.task:has(.task-check:checked){opacity:.75}
+.task-check{cursor:pointer}
+.nav-item{min-height:44px;justify-content:center}
+.nav-item.is-active .nav-glyph{background:var(--accent-soft)}
+#viewHome:not([hidden]),#viewTasks:not([hidden]),#viewNotes:not([hidden]),#viewHabits:not([hidden]),#viewMore:not([hidden]){animation:page-in var(--motion-page) ease-out both}
+@keyframes page-in{from{opacity:.65;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+dialog[open]{animation:dialog-in 180ms ease-out}
+@keyframes dialog-in{from{opacity:.8;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+/* Settings dialog viewport fixes */
+dialog{box-sizing:border-box;width:min(440px,calc(100vw - 24px));max-width:calc(100vw - 24px);min-width:0;max-height:min(86dvh,760px);margin:auto;overflow:hidden;inset:0;padding:0}
+dialog[open]{display:block}
+dialog .dialog-body{box-sizing:border-box;width:100%;min-width:0;max-width:100%;max-height:min(86dvh,760px);overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;padding:20px;align-content:start}
+dialog .dialog-body>*{min-width:0;max-width:100%}
+dialog .dialog-body label{min-width:0;max-width:100%;overflow-wrap:anywhere}
+dialog .dialog-body input,dialog .dialog-body textarea,dialog .dialog-body select,dialog .wide-secondary{min-width:0;width:100%;max-width:100%;box-sizing:border-box}
+dialog .form-actions{min-width:0;max-width:100%;flex-wrap:wrap}
+dialog .form-actions button{min-width:0;white-space:normal}
+dialog .hint{overflow-wrap:anywhere}
+dialog .row{min-width:0}
+@media(max-width:400px){dialog .dialog-body{padding:16px}dialog .form-actions.wrap{justify-content:stretch}dialog .form-actions.wrap button{flex:1 1 auto}}
+
+/* Mobile 2.0: separate timetable and circular progress */
+#viewSchedule{min-height:50vh}
+#viewSchedule .schedule{margin-top:18px}
+#viewSchedule:not([hidden]){animation:page-in var(--motion-page) ease-out both}
+.overview-progress{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 18px}
+.overview-meter{display:flex;align-items:center;gap:11px;background:var(--panel);border:1px solid var(--border);border-radius:15px;padding:13px 11px;min-width:0}
+.overview-meter>div:last-child{display:grid;gap:3px;min-width:0}
+.overview-meter strong{font-size:13px;font-weight:700}
+.overview-meter small{font-size:10px;color:var(--muted);line-height:1.3}
+.progress-ring,.small-ring{--progress:0%;flex-shrink:0;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--accent) var(--progress),var(--border) 0);position:relative;isolation:isolate}
+.progress-ring{width:58px;height:58px}
+.small-ring{width:44px;height:44px}
+.progress-ring::before,.small-ring::before{content:"";position:absolute;inset:6px;border-radius:50%;background:var(--panel);z-index:-1}
+.small-ring::before{inset:5px}
+.progress-ring span{font-size:12px;font-weight:750}
+.small-ring span{font-size:10px;font-weight:700}
+.home-habit{display:flex;align-items:center;gap:12px}
+.home-habit-label{display:grid;gap:4px;min-width:0;flex:1;margin-bottom:0}
+.home-habit-label small{text-align:left}
+@media(max-width:370px){.overview-meter{gap:7px;padding:10px 7px}.progress-ring{width:47px;height:47px}.overview-meter strong{font-size:12px}.overview-meter small{font-size:9px}}
+
+/* Mobile 2.0: focused home dashboard */
+#viewHome .intro{padding:26px 0 17px}
+#viewHome .intro h1{margin:0;font-size:29px}
+.next-lesson-card{width:100%;position:relative;display:grid;gap:6px;text-align:left;background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:18px;padding:17px 36px 17px 17px;margin:0 0 13px;min-height:95px}
+.next-kicker{color:var(--accent);font-size:12px;font-weight:650}
+.next-lesson-card strong{font-size:16px;line-height:1.35}
+.next-meta{color:var(--muted);font-size:12px}
+.next-chevron{position:absolute;right:17px;top:50%;transform:translateY(-50%);font-size:26px;color:var(--muted)}
+.overview-progress{margin-bottom:26px}
+.overview-meter{color:var(--text);text-align:left;cursor:pointer;min-height:84px}
+.overview-meter:active,.next-lesson-card:active{transform:scale(.99)}
+.progress-ring span{display:none}
+#viewHome .home-preview{margin-top:0}
+.near-task-details{display:grid;gap:3px;min-width:0}
+.near-task-details small{color:var(--muted);font-size:11px}
+@media(max-width:370px){#viewHome .intro h1{font-size:26px}.overview-meter{min-height:76px}}
+
+/* Compact segmented task categories */
+.tasks-heading{font-size:26px;margin:0 0 18px;letter-spacing:-.8px}
+.task-tabs{display:flex;gap:7px;overflow-x:auto;padding:2px 1px 11px;margin-bottom:8px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.task-tabs::-webkit-scrollbar{display:none}
+.task-tab{white-space:nowrap;flex:0 0 auto;border:1px solid var(--border);border-radius:999px;background:var(--panel);color:var(--muted);padding:10px 13px;font-size:12px;font-weight:650;min-height:40px;transition:background .15s,border-color .15s,color .15s}
+.task-tab.is-selected{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+.task-tab span:not(:empty){font-size:10px;margin-left:3px;opacity:.8}
+.task-tabs+[role=tabpanel] .task-list{margin-top:0}
+[data-task-panel] .task-list{margin-top:0}
+@media(prefers-reduced-motion:reduce){.task-tab{transition:none}}
+
+/* Clean per-view headers matching the original mockup */
+.screen-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:25px 0 17px}
+.screen-header h1{font-size:25px;letter-spacing:-.8px;margin:0;font-weight:750}
+.screen-header .date{font-size:12px;color:var(--muted);margin-top:4px}
+.screen-actions{display:flex;align-items:center;gap:5px}
+.screen-action,.screen-header #settings{width:39px;height:39px;border:0;border-radius:11px;background:transparent;display:grid;place-items:center;color:var(--text);font-size:23px}
+.screen-action:active,.screen-header #settings:active{background:var(--accent-soft)}
+#viewTasks .tasks,#viewHabits .habits{margin-top:0}
+#viewSchedule .schedule{margin-top:0}
+#viewSchedule .schedule>.section-title h2{display:none}
+#viewSchedule .schedule>.section-title{justify-content:flex-end}
+.notes-page{padding-top:0}
+#taskSearchWrap{margin-bottom:12px}
+#taskSearchInput{width:100%;box-sizing:border-box;padding:11px 13px;background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:12px}
+
+/* Schedule cards and customizable habit visuals */
+#viewSchedule .schedule{border:0;background:transparent;padding:0}
+#viewSchedule .schedule>.section-title{padding:0 1px 4px}
+#viewSchedule .weekdays{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;margin:7px 0 15px}
+#viewSchedule .weekdays button{padding:11px 0;border-radius:10px}
+#viewSchedule .schedule-list{gap:9px}
+#viewSchedule .lesson{position:relative;overflow:hidden;border:1px solid var(--border);border-radius:14px;background:var(--panel);padding:14px 15px 14px 19px;min-height:76px}
+#viewSchedule .lesson:before{content:"";position:absolute;top:0;bottom:0;left:0;width:5px;background:#617df5}
+#viewSchedule .lesson:nth-child(4n+2):before{background:#9567e9}
+#viewSchedule .lesson:nth-child(4n+3):before{background:#58bb85}
+#viewSchedule .lesson:nth-child(4n+4):before{background:#d6ac54}
+#viewSchedule .lesson.now{border-color:var(--accent)}
+#viewSchedule .lesson-time{min-width:83px;font-size:12px;line-height:1.65}
+#viewSchedule .lesson-name{font-size:14px}
+.habit-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin:8px 0 14px}
+.habit-week span{display:grid;place-items:center;padding:11px 2px;font-size:12px;color:var(--muted);border-radius:10px}
+.habit-week span.selected{color:white;background:#7974f5;font-weight:700}
+.habit-identity{display:flex;align-items:center;gap:12px}
+.habit-icon{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;background:#35315a;color:#b8a6ff;font-size:18px;font-weight:750}
+.habit-icon-book,.habit-icon-sport{background:#1d4436;color:#75daa1}
+.habit-icon-water{background:#1a3d5b;color:#67baff}
+.habit-icon-language{background:#543b31;color:#ffb37e}
+.habit-icon-music{background:#3c305c;color:#d5a6ff}
+.habit-icon-study{background:#374163;color:#a8bfff}
+.habit-icon-health{background:#4c303f;color:#f3a3bc}
+
+/* Task categories: slim colorful right-side accents */
+#viewTasks .task{position:relative;overflow:hidden;padding-right:18px}
+#viewTasks .task::after{content:"";position:absolute;right:0;top:0;bottom:0;width:3px;background:#8073ed}
+#viewTasks .task-list .task:nth-child(4n+2)::after{background:#62a6f3}
+#viewTasks .task-list .task:nth-child(4n+3)::after{background:#5cbd8d}
+#viewTasks .task-list .task:nth-child(4n+4)::after{background:#d2a65c}
+
+/* Home card accents & add action chooser */
+#viewHome .next-lesson-card{overflow:hidden;padding-left:20px}
+#viewHome .next-lesson-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:#8872f5}
+#viewHome .home-task{position:relative;overflow:hidden;padding-left:17px}
+#viewHome .home-task::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:#8276f2}
+#viewHome .home-task:nth-child(4n+2)::before{background:#63a5eb}
+#viewHome .home-task:nth-child(4n+3)::before{background:#57bc8c}
+#viewHome .home-task:nth-child(4n+4)::before{background:#d5a455}
+.add-choice-list{display:grid;gap:9px}
+.add-choice-list button{width:100%;border:1px solid var(--border);background:var(--bg);border-radius:12px;padding:15px;color:var(--text);display:flex;justify-content:space-between;align-items:center;text-align:left;font-size:14px;font-weight:650}
+.add-choice-list button:disabled{opacity:.55;cursor:not-allowed}
+.add-choice-list small{color:var(--muted);font-size:12px}
+
+/* More page — organized settings groups */
+#viewMore .screen-header{padding-bottom:9px}
+.more-section{margin:14px 0 20px}
+.more-section h2{font-size:12px;color:var(--muted);font-weight:500;margin:0 0 9px 3px;letter-spacing:0}
+.more-group{background:var(--panel);border:1px solid var(--border);border-radius:15px;overflow:hidden}
+.more-row{width:100%;display:flex;align-items:center;gap:11px;padding:12px 13px;min-height:56px;color:var(--text);text-align:left;background:transparent;border:0;font-size:13px}
+.more-row+.more-row{border-top:1px solid var(--border)}
+.more-row>span:nth-child(2){min-width:0;flex:1;font-weight:600}
+.more-row small{display:block;color:var(--muted);font-size:10px;font-weight:400;margin-top:2px}
+.more-icon{width:31px;height:31px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);border-radius:9px;font-size:17px;flex-shrink:0}
+.more-chevron{font-size:23px;color:var(--muted)}
+.more-themes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px;padding:4px;border:1px solid var(--border);background:var(--panel);border-radius:13px}
+.more-themes button{min-width:0;border:0;border-radius:9px;background:none;color:var(--muted);padding:11px 3px;font-size:12px}
+.more-themes button.selected{background:var(--accent-soft);color:var(--accent);font-weight:750}
+.more-version{display:flex;justify-content:space-between;gap:8px;color:var(--muted);font-size:11px;padding:3px 3px 20px}
+
+/* Habits: selectable weekday pills */
+.habit-week button{min-width:0;min-height:42px;border:0;border-radius:10px;background:transparent;color:var(--muted);font-size:12px;cursor:pointer}
+.habit-week button.selected{color:#fff;background:#7974f5;font-weight:700}
+.habit-week button:disabled{opacity:.3;cursor:default}
+#viewTasks .task{padding-left:18px;padding-right:12px}
+#viewTasks .task::after{left:0;right:auto}
+
+/* Visual habit icon picker, consistent SVG iconography */
+.icon-picker{border:0;padding:0;margin:0;min-width:0}
+.icon-picker legend{font-size:13px;font-weight:650;margin-bottom:9px}
+.habit-icon-choices{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.habit-icon-choice{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-width:0;min-height:82px;border:1px solid var(--border);border-radius:12px;background:var(--bg);color:var(--muted);font-size:11px;padding:8px 3px}
+.habit-icon-choice.is-selected{border-color:var(--accent);background:var(--accent-soft);color:var(--text)}
+.habit-icon svg{width:22px;height:22px;display:block}
+.habit-icon-choice .habit-icon{width:36px;height:36px}
+@media(max-width:360px){.habit-icon-choices{gap:5px}.habit-icon-choice{font-size:10px}}
+
+/* Schedule weekdays show dates; habit weekday tabs stay date-free */
+#viewSchedule .weekdays button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:54px}
+#viewSchedule .weekdays button strong{font-size:15px;font-weight:700;color:inherit}
+#viewSchedule .weekdays button span{font-size:11px}
+
+/* Two-week schedule navigation */
+#viewSchedule .week-switch{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 0 12px}
+#viewSchedule .week-switch button{background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:10px;min-width:38px;min-height:38px;font-size:25px}
+#weekLabel{color:var(--text);font-size:12px;text-align:center;font-weight:650}
+#scheduleSwipe{touch-action:pan-y}
+
+/* Notes */
+.note-tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin:14px 0}.note-tabs button{border:1px solid var(--border);border-radius:10px;background:var(--panel);color:var(--muted);padding:10px 3px;font-size:12px}.note-tabs button.selected{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}.notes-list{display:grid;gap:10px;margin-top:12px}.note-card{display:flex;flex-direction:column;gap:7px;text-align:left;border:1px solid var(--border);border-radius:14px;background:var(--panel);color:var(--text);padding:15px;min-width:0}.note-card strong{font-size:15px}.note-card-meta{font-size:11px;color:var(--accent)}.note-card-body{font-size:12px;color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere}.note-pin{display:flex;align-items:center;gap:10px}.more-import{display:block;padding:12px 16px;color:var(--muted);font-size:12px;border-top:1px solid var(--border)}#noteBody{resize:vertical;min-height:150px}
+
+.dialog-body label.note-pin{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:10px}
+.dialog-body label.note-pin input[type="checkbox"]{width:17px;height:17px;flex:0 0 17px;margin:0}
+
+/* Notes: expandable search and inline checklists */
+.note-search-wrap{display:grid;grid-template-rows:0fr;opacity:0;transform:translateX(15px);transition:grid-template-rows .2s,opacity .2s,transform .2s;overflow:hidden}
+.note-search-wrap.open{grid-template-rows:1fr;opacity:1;transform:translateX(0);margin-top:10px}
+.note-search-wrap input{min-height:0;width:100%;border:1px solid var(--border);border-radius:12px;background:var(--panel);color:var(--text);padding:10px 12px}
+.note-checklist-field{display:grid;gap:10px}.note-checklist-field[hidden]{display:none}.checklist-edit-row{display:flex;align-items:center;gap:8px}.dialog-body .checklist-edit-row input[type=checkbox]{width:18px;flex:0 0 18px}.checklist-edit-row input[data-check-text]{flex:1;min-width:0}.checklist-edit-row button{background:transparent;color:var(--muted);border:0;font-size:20px}
+#noteTextField[hidden]{display:none}
+
+/* 4-week habit activity calendar */
+.activity-panel{padding:16px}
+.activity-grid{display:block;margin-top:0}
+.activity-summary{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:18px;color:var(--muted);font-size:12px}
+.activity-summary strong{color:var(--text);font-size:24px;letter-spacing:-.7px}
+.activity-summary small{font-size:11px;font-weight:400;letter-spacing:0;color:var(--muted)}
+.activity-weekdays,.activity-calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px}
+.activity-weekdays{margin-bottom:8px;text-align:center;font-size:10px;color:var(--muted)}
+.activity-calendar .activity-day{min-height:0;aspect-ratio:1;border-radius:9px}
+.activity-calendar .activity-day::after{font-size:11px;font-weight:550}
+.activity-calendar .activity-day.today{outline:2px solid var(--accent);outline-offset:2px}
+.activity-spacer{min-width:0}
+.activity-legend{display:flex;justify-content:flex-end;align-items:center;gap:5px;margin-top:16px;font-size:10px;color:var(--muted)}
+.activity-legend i{display:block;width:12px;height:12px;border-radius:4px;border:1px solid var(--border);background:var(--bg)}
+.activity-legend i.level1{background:color-mix(in srgb,var(--accent) 27%,var(--panel))}
+.activity-legend i.level2{background:color-mix(in srgb,var(--accent) 60%,var(--panel))}
+.activity-legend i.level3{background:var(--accent)}
+
+.activity-month-heading{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.activity-month-heading strong{font-size:15px;text-transform:capitalize}.activity-month-heading span{color:var(--muted);font-size:10px}.activity-grid{touch-action:pan-y;user-select:none}.activity-day.future{opacity:.3}
