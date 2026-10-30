@@ -363,3 +363,32 @@ dialog .row{min-width:0}
  @keyframes sheet-up{from{opacity:.85;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
 }
 @media(prefers-reduced-motion:reduce){dialog.create-choice-sheet[open],dialog.editor-sheet[open]{animation:none}}
+
+/* Consistent, polished creation/editing forms. */
+dialog.editor-sheet{border:1px solid var(--border);box-shadow:0 24px 70px rgba(0,0,0,.38)}
+dialog.editor-sheet .dialog-body{gap:17px}
+dialog.editor-sheet .modal-head{padding-bottom:12px;border-bottom:1px solid var(--border);gap:12px}
+dialog.editor-sheet .modal-head h2{font-size:19px;line-height:1.25;letter-spacing:-.025em;margin:0;font-weight:750}
+dialog.editor-sheet .modal-head .icon-btn{flex-shrink:0;border-radius:11px}
+dialog.editor-sheet .dialog-body label{font-size:12px;color:var(--muted);font-weight:600;gap:8px;letter-spacing:.005em}
+dialog.editor-sheet .dialog-body input:not([type=checkbox]),dialog.editor-sheet .dialog-body textarea,dialog.editor-sheet .dialog-body select{
+ background:var(--bg);border:1px solid var(--border);border-radius:13px;color:var(--text);padding:13px 14px;font-size:15px;line-height:1.4;min-height:48px;transition:border-color .16s,box-shadow .16s;
+}
+dialog.editor-sheet .dialog-body textarea{min-height:95px;resize:vertical}
+dialog.editor-sheet .dialog-body input:focus,dialog.editor-sheet .dialog-body textarea:focus,dialog.editor-sheet .dialog-body select:focus{
+ outline:none;border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 16%,transparent);
+}
+dialog.editor-sheet .dialog-body input::placeholder,dialog.editor-sheet .dialog-body textarea::placeholder{color:var(--muted);opacity:.75}
+dialog.editor-sheet .dialog-body .form-actions{display:flex;align-items:center;gap:10px;padding-top:13px;border-top:1px solid var(--border);margin-top:3px}
+dialog.editor-sheet .dialog-body .form-actions .primary{flex:1;min-height:48px;border-radius:13px;font-size:14px;font-weight:700}
+dialog.editor-sheet .dialog-body .form-actions .danger{flex:0 1 auto;min-height:44px;border-radius:12px}
+dialog.editor-sheet .dialog-body label.note-pin{display:flex!important;flex-direction:row!important;align-items:center;gap:11px;padding:12px 13px;border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:14px;font-weight:500}
+dialog.editor-sheet .dialog-body label.note-pin input[type=checkbox]{width:18px!important;height:18px!important;min-height:18px;flex:0 0 18px;margin:0;accent-color:var(--accent)}
+dialog.schedule-editor .dialog-body>.hint{margin:0;font-size:12px;line-height:1.5}
+dialog.schedule-editor #lessonForm{gap:14px}
+dialog.schedule-editor #editLessons{border-top:1px solid var(--border);padding-top:12px}
+@media(max-width:700px){
+ dialog.editor-sheet .dialog-body{padding:23px 18px calc(22px + env(safe-area-inset-bottom));gap:15px}
+ dialog.editor-sheet .dialog-body .form-actions{position:sticky;bottom:calc(-22px - env(safe-area-inset-bottom));background:var(--panel);padding:12px 0 3px;z-index:2}
+ dialog.editor-sheet .dialog-body label{min-width:0}
+}
