@@ -30,21 +30,23 @@ const lessons=state.lessons.filter(x=>!x.deleted&&x.day===selectedDay).sort((a,b
 $('scheduleList').innerHTML=lessons.length?lessons.map(l=>`<div class="lesson ${scheduleStatus(l,selectedDay)==='Сейчас идёт'?'now':''}"><div class="lesson-time">${esc(l.start)}<br>${esc(l.end)}</div><div><div class="lesson-name">${esc(l.name)}</div><div class="lesson-room">${esc(l.room)}</div>${scheduleStatus(l,selectedDay)?`<div class="lesson-status">${scheduleStatus(l,selectedDay)}</div>`:''}</div></div>`).join(''):'<div class="empty">На этот день пары не добавлены</div>';
 const today=nowday(), active=state.tasks.filter(t=>!t.deleted&&!t.done),done=state.tasks.filter(t=>!t.deleted&&t.done).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));const todayTasks=active.filter(t=>t.due&&t.due<=today),up=active.filter(t=>t.due&&t.due>today).sort((a,b)=>a.due.localeCompare(b.due)),none=active.filter(t=>!t.due);$('todayCount').textContent=todayTasks.length;
 const tasksHtml=a=>a.length?a.map(t=>`<article class="task"><input class="task-check" type="checkbox" data-check="${t.id}" ${t.done?'checked':''} aria-label="Выполнить ${esc(t.name)}"><div class="task-info"><div class="task-name">${esc(t.name)}</div>${t.note?`<div class="task-note">${esc(t.note)}</div>`:''}${t.due?`<div class="task-due">${esc(t.due)}</div>`:''}</div><button class="task-edit" aria-label="Изменить дело" data-edit="${t.id}">✎</button></article>`).join(''):'<div class="empty">Пока ничего нет</div>';
-$('todayList').innerHTML=tasksHtml(todayTasks);$('upcomingList').innerHTML=tasksHtml(up);$('somedayList').innerHTML=tasksHtml(none);$('doneCount').textContent=done.length;$('doneList').innerHTML=tasksHtml(done);renderHabits();renderDayGlance();$('syncBadge').textContent=userId?'Облачная синхронизация подключена · офлайн доступ':'Данные на устройстве · офлайн доступ';}
-function renderDayGlance(){
- const root=$('dayGlance'),date=new Date(),today=date.getDay(),time=date.toTimeString().slice(0,5);
- const lessons=state.lessons.filter(l=>!l.deleted&&l.day===today).sort((a,b)=>a.start.localeCompare(b.start));
- const current=lessons.find(l=>l.start<=time&&time<l.end);
- const next=lessons.find(l=>l.start>time);
- const active=current||next;
- const lessonLabel=current?'Сейчас':'Следующая пара';
- const lessonText=active?esc(active.name):'На сегодня больше пар нет';
- const lessonSub=active?esc(active.start+'–'+active.end+(active.room?' · '+active.room:'')):'';
- const habits=state.habits.filter(h=>!h.deleted);
- const done=habits.filter(h=>valueFor(h.id,nowday())>=h.target).length;
- root.innerHTML='<div class="glance-item"><span class="glance-label">'+lessonLabel+'</span><strong>'+lessonText+'</strong><span class="glance-detail">'+lessonSub+'</span></div>'+
- '<div class="glance-item"><span class="glance-label">Привычки сегодня</span><strong>'+done+' из '+habits.length+'</strong><span class="glance-detail">'+(habits.length?'выполнено':'Пока нет привычек')+'</span></div>';
+$('todayList').innerHTML=tasksHtml(todayTasks);$('upcomingList').innerHTML=tasksHtml(up);$('somedayList').innerHTML=tasksHtml(none);$('doneCount').textContent=done.length;$('doneList').innerHTML=tasksHtml(done);renderHabits();renderDashboard();$('syncBadge').textContent=userId?'Облачная синхронизация подключена · офлайн доступ':'Данные на устройстве · офлайн доступ';}
+function renderDashboard(){
+ const now=new Date(), t=now.toTimeString().slice(0,5),today=nowday();
+ const lessons=state.lessons.filter(l=>!l.deleted&&l.day===now.getDay()).sort((a,b)=>a.start.localeCompare(b.start));
+ const current=lessons.find(l=>l.start<=t&&t<l.end),next=lessons.find(l=>l.start>t),lesson=current||next;
+ $('nextLesson').innerHTML=lesson?'<span class="next-tag">'+(current?'Сейчас идёт':'Скоро начнётся')+'</span><strong>'+esc(lesson.name)+'</strong><span class="next-meta">'+esc(lesson.start+' – '+lesson.end)+(lesson.room?' · '+esc(lesson.room):'')+'</span>':'<strong>На сегодня пар больше нет</strong><span class="next-meta">Можно заняться своими делами</span>';
+ const tasks=state.tasks.filter(x=>!x.deleted&&x.due&&x.due<=today),done=tasks.filter(x=>x.done).length;
+ const habits=state.habits.filter(x=>!x.deleted),habitsDone=habits.filter(x=>valueFor(x.id,today)>=x.target).length;
+ $('homeTaskText').textContent=done+' из '+tasks.length;$('homeHabitText').textContent=habitsDone+' из '+habits.length;
+ $('homeTaskRing').style.setProperty('--progress',(tasks.length?done/tasks.length*100:0)+'%');
+ $('homeHabitRing').style.setProperty('--progress',(habits.length?habitsDone/habits.length*100:0)+'%');
+ const remaining=tasks.filter(x=>!x.done);
+ $('homeTodayList').innerHTML=remaining.length?remaining.slice(0,5).map(x=>'<article class="task"><input class="task-check" type="checkbox" data-check="'+esc(x.id)+'" aria-label="Выполнить '+esc(x.name)+'"><div class="task-info"><div class="task-name">'+esc(x.name)+'</div>'+(x.note?'<div class="task-note">'+esc(x.note)+'</div>':'')+'</div><button class="task-edit" data-edit="'+esc(x.id)+'" aria-label="Редактировать">✎</button></article>').join(''):'<div class="empty">Все дела на сегодня выполнены</div>';
 }
+$('openAllTasks').onclick=()=>showView('tasks');
+$('homeTodayList').addEventListener('click',e=>{const b=e.target.closest('[data-edit]');if(b)openTask(b.dataset.edit)});
+$('homeTodayList').addEventListener('change',e=>{const c=e.target.closest('[data-check]');if(!c)return;const t=state.tasks.find(x=>x.id===c.dataset.check);if(t){t.done=c.checked;t.updatedAt=Date.now();save()}});
 function renderHabits(){const today=nowday(),habits=state.habits.filter(h=>!h.deleted);$('habitCount').textContent=habits.length;
 $('habitList').innerHTML=habits.length?habits.map(h=>{const v=valueFor(h.id,today),pct=Math.min(100,Math.round(v/h.target*100));return `<div class="habit"><div class="habit-top"><div><div class="habit-name">${esc(h.name)}</div><div class="habit-sub">${v} / ${h.target} ${h.unit==='done'?'выполнено':esc(h.unit)} сегодня</div></div><div class="habit-actions"><button data-log="${h.id}" aria-label="Отметить ${esc(h.name)}">＋</button><button data-habit-edit="${h.id}" aria-label="Изменить ${esc(h.name)}">✎</button></div></div><div class="habit-progress"><span style="width:${pct}%"></span></div></div>`}).join(''):'<div class="empty">Добавь первую привычку, например «Чтение».</div>';
 const monday=new Date();const dow=(monday.getDay()+6)%7;monday.setDate(monday.getDate()-dow);const start=localDay(monday);$('weeklyStats').innerHTML=habits.length?habits.map(h=>{let total=0,daysDone=0;for(let i=0;i<7;i++){const date=dayAdd(start,i);if(date>today)break;const v=valueFor(h.id,date);total+=v;if(v>=h.target)daysDone++}return `<div class="stat-row"><span>${esc(h.name)} · ${daysDone} дн.</span><strong>${total} ${h.unit==='done'?'раз':esc(h.unit)}</strong></div>`}).join(''):'<div class="hint">Здесь появятся итоги недели.</div>';
