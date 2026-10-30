@@ -5,7 +5,7 @@ const localDay=d=>[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String
 const dayAdd=(date,n)=>{const d=new Date(date+'T12:00:00');d.setDate(d.getDate()+n);return localDay(d)};
 const nowday=()=>localDay(new Date()),days=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
 const esc=str=>String(str??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const empty=()=>({tasks:[],lessons:[],habits:[],logs:[],theme:'dark'});
+const empty=()=>({tasks:[],lessons:[],habits:[],logs:[],theme:'dark',weekAnchor:null});
 let state;try{state={...empty(),...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch{state=empty()}
 for(const k of ['tasks','lessons','habits','logs'])if(!Array.isArray(state[k]))state[k]=[];
 let cfg;try{cfg=JSON.parse(localStorage.getItem(CFG)||'{}')}catch{cfg={}};
@@ -14,6 +14,10 @@ const toast=(msg)=>{const x=$('toast');x.textContent=msg;x.classList.add('show')
 function save(){localStorage.setItem(KEY,JSON.stringify(state));dirty=true;render();scheduleSync()}
 function changeTheme(){const mode=state.theme==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):state.theme;document.documentElement.dataset.theme=mode;$('themeSelect').value=state.theme;$('theme').textContent=mode==='dark'?'☀':'☾';}
 $('theme').onclick=()=>{state.theme=state.theme==='dark'?'light':'dark';save()};$('themeSelect').onchange=e=>{state.theme=e.target.value;save()};
+function mondayOf(d){const x=new Date(d.getFullYear(),d.getMonth(),d.getDate(),12);x.setDate(x.getDate()-(x.getDay()+6)%7);return x}
+function selectedWeek(date=new Date()){const a=state.weekAnchor;if(a&&a.date){const delta=Math.round((mondayOf(date)-mondayOf(new Date(a.date+'T12:00:00')))/604800000);return delta%2===0?a.type:(a.type==='numerator'?'denominator':'numerator')}const mon=mondayOf(date),start=mondayOf(new Date(mon.getFullYear(),0,4));const n=Math.round((mon-start)/604800000);return n%2===0?'numerator':'denominator'}
+const weekName=x=>x==='numerator'?'Числитель':'Знаменатель';
+const validLesson=(l,week)=>!l.deleted&&(!l.week||l.week==='all'||l.week===week);
 function scheduleStatus(lessons,d){const today=d===new Date().getDay(),t=new Date().toTimeString().slice(0,5);if(!today)return '';if(lessons.start<=t&&t<lessons.end)return 'Сейчас идёт';if(lessons.start>t)return 'Далее';return ''}
 let activeView='home';
 function showView(view){
@@ -25,15 +29,15 @@ function showView(view){
 }
 document.querySelector('.bottom-nav').addEventListener('click',e=>{const tab=e.target.closest('[data-nav]');if(tab)showView(tab.dataset.nav)});
 function render(){changeTheme();const dt=new Date();$('date').textContent=new Intl.DateTimeFormat('ru-RU',{weekday:'long',day:'numeric',month:'long'}).format(dt);const open=state.tasks.filter(t=>!t.deleted&&!t.done);$('summary').textContent=`${open.filter(t=>t.due===nowday()).length} дел на сегодня · ${state.habits.filter(h=>!h.deleted).length} привычек`;
-$('days').innerHTML=[1,2,3,4,5,6,0].map(d=>`<button data-day="${d}" class="${d===selectedDay?'active':''} ${d===dt.getDay()?'current':''}">${days[d]}</button>`).join('');
-const lessons=state.lessons.filter(x=>!x.deleted&&x.day===selectedDay).sort((a,b)=>a.start.localeCompare(b.start));
+$('weekLabel').textContent=weekName(selectedWeek());$('days').innerHTML=[1,2,3,4,5,6,0].map(d=>`<button data-day="${d}" class="${d===selectedDay?'active':''} ${d===dt.getDay()?'current':''}">${days[d]}</button>`).join('');
+const lessons=state.lessons.filter(x=>validLesson(x,selectedWeek())&&x.day===selectedDay).sort((a,b)=>a.start.localeCompare(b.start));
 $('scheduleList').innerHTML=lessons.length?lessons.map(l=>`<div class="lesson ${scheduleStatus(l,selectedDay)==='Сейчас идёт'?'now':''}"><div class="lesson-time">${esc(l.start)}<br>${esc(l.end)}</div><div><div class="lesson-name">${esc(l.name)}</div><div class="lesson-room">${esc(l.room)}</div>${scheduleStatus(l,selectedDay)?`<div class="lesson-status">${scheduleStatus(l,selectedDay)}</div>`:''}</div></div>`).join(''):'<div class="empty">На этот день пары не добавлены</div>';
 const today=nowday(), active=state.tasks.filter(t=>!t.deleted&&!t.done),done=state.tasks.filter(t=>!t.deleted&&t.done).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));const todayTasks=active.filter(t=>t.due&&t.due<=today),up=active.filter(t=>t.due&&t.due>today).sort((a,b)=>a.due.localeCompare(b.due)),none=active.filter(t=>!t.due);$('todayCount').textContent=todayTasks.length;
 const tasksHtml=a=>a.length?a.map(t=>`<article class="task"><input class="task-check" type="checkbox" data-check="${t.id}" ${t.done?'checked':''} aria-label="Выполнить ${esc(t.name)}"><div class="task-info"><div class="task-name">${esc(t.name)}</div>${t.note?`<div class="task-note">${esc(t.note)}</div>`:''}${t.due?`<div class="task-due">${esc(t.due)}</div>`:''}</div><button class="task-edit" aria-label="Изменить дело" data-edit="${t.id}">✎</button></article>`).join(''):'<div class="empty">Пока ничего нет</div>';
 $('todayList').innerHTML=tasksHtml(todayTasks);$('upcomingList').innerHTML=tasksHtml(up);$('somedayList').innerHTML=tasksHtml(none);$('doneCount').textContent=done.length;$('doneList').innerHTML=tasksHtml(done);renderHabits();renderDashboard();$('syncBadge').textContent=userId?'Облачная синхронизация подключена · офлайн доступ':'Данные на устройстве · офлайн доступ';}
 function renderDashboard(){
  const now=new Date(), t=now.toTimeString().slice(0,5),today=nowday();
- const lessons=state.lessons.filter(l=>!l.deleted&&l.day===now.getDay()).sort((a,b)=>a.start.localeCompare(b.start));
+ const lessons=state.lessons.filter(l=>validLesson(l,selectedWeek(now))&&l.day===now.getDay()).sort((a,b)=>a.start.localeCompare(b.start));
  const current=lessons.find(l=>l.start<=t&&t<l.end),next=lessons.find(l=>l.start>t),lesson=current||next;
  $('nextLesson').innerHTML=lesson?'<span class="next-tag">'+(current?'Сейчас идёт':'Скоро начнётся')+'</span><strong>'+esc(lesson.name)+'</strong><span class="next-meta">'+esc(lesson.start+' – '+lesson.end)+(lesson.room?' · '+esc(lesson.room):'')+'</span>':'<strong>На сегодня пар больше нет</strong><span class="next-meta">Можно заняться своими делами</span>';
  const tasks=state.tasks.filter(x=>!x.deleted&&x.due&&x.due<=today),done=tasks.filter(x=>x.done).length;
@@ -59,10 +63,35 @@ for(const id of ['todayList','upcomingList','somedayList','doneList'])$(id).addE
 function openTask(id){editTask=id||null;const t=state.tasks.find(x=>x.id===id);$('taskTitle').textContent=t?'Изменить дело':'Новое дело';$('taskName').value=t?.name||'';$('taskNote').value=t?.note||'';const due=t?.due||nowday();$('taskWhen').value=t?(!t.due?'none':t.due===nowday()?'today':t.due===dayAdd(nowday(),1)?'tomorrow':'date'):'today';$('taskDate').value=due;$('dateInputWrap').hidden=$('taskWhen').value!=='date';$('deleteTask').hidden=!t;$('taskDialog').showModal()}
 $('taskWhen').onchange=()=>$('dateInputWrap').hidden=$('taskWhen').value!=='date';$('taskForm').onsubmit=e=>{e.preventDefault();const name=$('taskName').value.trim();if(!name)return;const w=$('taskWhen').value,due=w==='none'?null:w==='today'?nowday():w==='tomorrow'?dayAdd(nowday(),1):$('taskDate').value;if(w==='date'&&!due){toast('Выбери дату');return}const t=state.tasks.find(t=>t.id===editTask);const fields={name,note:$('taskNote').value,due,updatedAt:Date.now()};if(t)Object.assign(t,fields);else state.tasks.push({id:uid(),done:false,...fields});$('taskDialog').close();save()};
 $('deleteTask').onclick=()=>{const t=state.tasks.find(t=>t.id===editTask);if(t){t.deleted=true;t.updatedAt=Date.now();$('taskDialog').close();save()}};
+$('switchWeek').onclick=()=>{state.weekAnchor={date:nowday(),type:selectedWeek()==='numerator'?'denominator':'numerator'};save()};
 $('editSchedule').onclick=()=>{$('lessonDay').value=selectedDay;renderLessonEdit();$('scheduleDialog').showModal()};
-function renderLessonEdit(){const day=Number($('lessonDay').value);$('editLessons').innerHTML=state.lessons.filter(x=>!x.deleted&&x.day===day).sort((a,b)=>a.start.localeCompare(b.start)).map(l=>`<div class="edit-lesson"><span>${esc(l.start)} ${esc(l.name)}</span><button data-delete-lesson="${l.id}" aria-label="Удалить пару">✕</button></div>`).join('')};$('lessonDay').onchange=renderLessonEdit;
-$('lessonForm').onsubmit=e=>{e.preventDefault();const start=$('lessonStart').value,end=$('lessonEnd').value;if(end<=start){toast('Конец должен быть позже начала');return}state.lessons.push({id:uid(),day:Number($('lessonDay').value),name:$('lessonName').value.trim(),start,end,room:$('lessonRoom').value.trim(),updatedAt:Date.now()});$('lessonName').value='';$('lessonRoom').value='';renderLessonEdit();save()};
+function renderLessonEdit(){const day=Number($('lessonDay').value);$('editLessons').innerHTML=state.lessons.filter(x=>!x.deleted&&x.day===day).sort((a,b)=>a.start.localeCompare(b.start)).map(l=>`<div class="edit-lesson"><span>${esc(l.start)} ${esc(l.name)} · ${l.week==='numerator'?'Ч':l.week==='denominator'?'З':'Каждую'}</span><button data-delete-lesson="${l.id}" aria-label="Удалить пару">✕</button></div>`).join('')};$('lessonDay').onchange=renderLessonEdit;
+$('lessonForm').onsubmit=e=>{e.preventDefault();const start=$('lessonStart').value,end=$('lessonEnd').value;if(end<=start){toast('Конец должен быть позже начала');return}state.lessons.push({id:uid(),day:Number($('lessonDay').value),name:$('lessonName').value.trim(),week:$('lessonWeek').value,start,end,room:$('lessonRoom').value.trim(),updatedAt:Date.now()});$('lessonName').value='';$('lessonRoom').value='';renderLessonEdit();save()};
 $('editLessons').onclick=e=>{const b=e.target.closest('[data-delete-lesson]');if(b){const t=state.lessons.find(x=>x.id===b.dataset.deleteLesson);if(t){t.deleted=true;t.updatedAt=Date.now();renderLessonEdit();save()}}};$('clearLessons').onclick=()=>{if(!confirm('Удалить все пары этого дня?'))return;const day=Number($('lessonDay').value);state.lessons.filter(l=>l.day===day&&!l.deleted).forEach(l=>{l.deleted=true;l.updatedAt=Date.now()});renderLessonEdit();save()};
+$('addBulkLessons').onclick=()=>{
+ const input=$('bulkLessons').value.trim();if(!input){toast('Введи хотя бы одну пару');return}
+ const lines=input.split(/\n/).map(x=>x.trim()).filter(Boolean),parsed=[],errors=[];
+ for(let i=0;i<lines.length;i++){
+  const parts=lines[i].split('|').map(x=>x.trim()),match=/^(\d{1,2}:\d{2})\s*[-–—]\s*(\d{1,2}:\d{2})$/.exec(parts[0]||'');
+  if(!match||!parts[1]||parts.length>3){errors.push(i+1);continue}
+  const start=match[1].padStart(5,'0'),end=match[2].padStart(5,'0');
+  if(start>=end||Number(start.slice(0,2))>23||Number(end.slice(0,2))>23||Number(start.slice(3))>59||Number(end.slice(3))>59||parts[1].length>100||(parts[2]||'').length>100){errors.push(i+1);continue}
+  parsed.push({start,end,name:parts[1],room:parts[2]||''})
+ }
+ if(errors.length){toast('Проверь строки: '+errors.join(', '));return}
+ const day=Number($('lessonDay').value),week=$('lessonWeek').value;
+ for(const l of parsed)state.lessons.push({...l,id:uid(),day,week,updatedAt:Date.now()});
+ $('bulkLessons').value='';renderLessonEdit();save();toast('Добавлено пар: '+parsed.length)
+};
+$('copyLessons').onclick=()=>{
+ const from=Number($('lessonDay').value),to=Number($('copyLessonDay').value),week=$('lessonWeek').value;
+ if(from===to){toast('Выбери другой день');return}
+ const source=state.lessons.filter(x=>!x.deleted&&x.day===from&&(!x.week||x.week===week||week==='all'));
+ if(!source.length){toast('На исходном дне нет подходящих пар');return}
+ if(!confirm('Скопировать '+source.length+' пар? Существующие пары останутся.'))return;
+ const ts=Date.now();for(const l of source){const {id,deleted,updatedAt,...other}=l;state.lessons.push({...other,id:uid(),day:to,updatedAt:ts})}
+ renderLessonEdit();save();toast('Скопировано пар: '+source.length)
+};
 $('addHabit').onclick=()=>openHabit();$('habitList').onclick=e=>{const ed=e.target.closest('[data-habit-edit]'),log=e.target.closest('[data-log]');if(ed)openHabit(ed.dataset.habitEdit);if(log)openLog(log.dataset.log)};
 function openHabit(id){editHabit=id||null;const h=state.habits.find(h=>h.id===id);$('habitTitle').textContent=h?'Изменить привычку':'Новая привычка';$('habitName').value=h?.name||'';$('habitUnit').value=h?.unit||'страниц';$('habitTarget').value=h?.target||10;$('deleteHabit').hidden=!h;$('habitDialog').showModal()};
 $('habitUnit').onchange=()=>{if($('habitUnit').value==='done')$('habitTarget').value=1};
