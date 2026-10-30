@@ -65,13 +65,14 @@ if('serviceWorker' in navigator&&location.protocol!=='file:')window.addEventList
 
 function activateView(view){
  for(const n of ['home','tasks','notes','more','habits']){const id='view'+n[0].toUpperCase()+n.slice(1);const el=$(id);if(el)el.hidden=n!==view;}
- document.querySelectorAll('.nav-item').forEach(b=>{const active=b.dataset.view===view||view==='habits'&&b.dataset.view==='more';b.classList.toggle('is-active',active);if(active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
+ document.querySelectorAll('.nav-item').forEach(b=>{const active=b.dataset.view===view;b.classList.toggle('is-active',active);if(active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
  window.scrollTo(0,0);
 }
-document.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click',()=>activateView(b.dataset.view)));
+document.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.view==='schedule'){activateView('home');document.querySelectorAll('.nav-item').forEach(x=>x.classList.toggle('is-active',x===b));document.querySelector('.schedule').scrollIntoView({behavior:'smooth',block:'start'});}else activateView(b.dataset.view)}));
 $('navAdd').addEventListener('click',()=>openTask());
-$('moreSchedule').addEventListener('click',()=>{activateView('home');document.querySelector('.schedule').scrollIntoView({behavior:'smooth'});});
-$('moreHabits').addEventListener('click',()=>activateView('habits'));
+$('moreNotes').addEventListener('click',()=>activateView('notes'));
+$('quickNotes').addEventListener('click',()=>activateView('notes'));
+$('quickTasks').addEventListener('click',()=>activateView('tasks'));
 $('moreSettings').addEventListener('click',()=>$('settings').click());
 
 render();if(userId)sync();
