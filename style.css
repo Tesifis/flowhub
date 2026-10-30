@@ -340,3 +340,5 @@ dialog .row{min-width:0}
 
 /* Hide the scrollbar on touch devices without disabling scrolling. */
 @media (pointer: coarse){html,body,main,*{scrollbar-width:none}html::-webkit-scrollbar,body::-webkit-scrollbar,main::-webkit-scrollbar,*::-webkit-scrollbar{display:none;width:0;height:0}}
+
+.more-icon svg{width:20px;height:20px;display:block}
