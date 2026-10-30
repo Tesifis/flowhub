@@ -342,3 +342,24 @@ dialog .row{min-width:0}
 @media (pointer: coarse){html,body,main,*{scrollbar-width:none}html::-webkit-scrollbar,body::-webkit-scrollbar,main::-webkit-scrollbar,*::-webkit-scrollbar{display:none;width:0;height:0}}
 
 .more-icon svg{width:20px;height:20px;display:block}
+
+/* Mobile creation flow: compact picker followed by a comfortable bottom sheet. */
+.create-choice-sheet .add-choice-list button{justify-content:flex-start;gap:12px;min-height:68px;padding:12px 14px}
+.create-choice-sheet .choice-icon{flex:0 0 38px;height:38px;display:grid;place-items:center;border-radius:11px;background:color-mix(in srgb,var(--accent) 13%,transparent);color:var(--accent)}
+.create-choice-sheet .choice-icon svg{width:21px;height:21px;stroke-linecap:round;stroke-linejoin:round}
+.create-choice-sheet .choice-copy{display:flex;flex:1;flex-direction:column;gap:4px;align-items:flex-start}
+.create-choice-sheet .choice-copy strong{font-size:14px;font-weight:700}
+.create-choice-sheet .choice-copy small{font-size:11px;font-weight:400;color:var(--muted)}
+.create-choice-sheet .choice-arrow{font-size:23px;font-weight:400;color:var(--muted)}
+.schedule-editor #lessonForm{display:grid;gap:12px}
+.schedule-editor #lessonForm>.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.schedule-editor #lessonForm .form-actions{margin-top:8px}
+@media(max-width:700px){
+ dialog.create-choice-sheet,dialog.editor-sheet{position:fixed;left:0;right:0;top:auto;bottom:0;margin:0;width:100%;max-width:100%;max-height:90dvh;border-radius:22px 22px 0 0;border-bottom:0}
+ dialog.create-choice-sheet[open],dialog.editor-sheet[open]{animation:sheet-up .22s ease-out}
+ dialog.create-choice-sheet .dialog-body,dialog.editor-sheet .dialog-body{max-height:calc(90dvh - env(safe-area-inset-bottom));padding:21px 18px calc(20px + env(safe-area-inset-bottom));overscroll-behavior:contain}
+ dialog.create-choice-sheet .dialog-body::before,dialog.editor-sheet .dialog-body::before{content:'';height:4px;width:36px;border-radius:3px;background:var(--border);justify-self:center;margin:-10px 0 0}
+ dialog.editor-sheet .dialog-body input,dialog.editor-sheet .dialog-body textarea,dialog.editor-sheet .dialog-body select{min-height:43px}
+ @keyframes sheet-up{from{opacity:.85;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+}
+@media(prefers-reduced-motion:reduce){dialog.create-choice-sheet[open],dialog.editor-sheet[open]{animation:none}}
