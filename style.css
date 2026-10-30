@@ -392,3 +392,32 @@ dialog.schedule-editor #editLessons{border-top:1px solid var(--border);padding-t
  dialog.editor-sheet .dialog-body .form-actions{position:sticky;bottom:calc(-22px - env(safe-area-inset-bottom));background:var(--panel);padding:12px 0 3px;z-index:2}
  dialog.editor-sheet .dialog-body label{min-width:0}
 }
+
+/* Navriqo concept v41: approved dark layered editor style. */
+dialog.editor-sheet{--editor-glow:rgba(104,69,245,.26);--editor-bright:#8056f6;background:#0c1426;color:#f6f8ff;border:1px solid #344469;border-radius:25px 25px 0 0;box-shadow:0 24px 85px #0009;overflow:hidden}
+dialog.editor-sheet.schedule-editor{--editor-glow:rgba(19,113,250,.26);--editor-bright:#278eff}
+dialog.editor-sheet .dialog-body{background:linear-gradient(157deg,var(--editor-glow) 0%,transparent 145px),linear-gradient(180deg,#101c33 0%,#0c1426 100%);color:#f5f7ff;gap:13px}
+dialog.editor-sheet .modal-head{position:relative;margin:-23px -18px 0;padding:30px 18px 25px;border:0;display:flex;gap:13px;align-items:center;background:radial-gradient(ellipse at -10% -20%,var(--editor-glow),transparent 72%),linear-gradient(155deg,rgba(79,53,178,.3),transparent 75%)}
+dialog.editor-sheet.schedule-editor .modal-head{background:radial-gradient(ellipse at -10% -20%,rgba(16,119,252,.48),transparent 75%),linear-gradient(155deg,#122f62,transparent 75%)}
+dialog.editor-sheet .modal-head h2{flex:1;color:white;font-size:18px;letter-spacing:-.03em}
+dialog.editor-sheet .editor-title-icon{height:44px;width:44px;display:grid;place-items:center;flex-shrink:0;background:linear-gradient(145deg,#7760f9,#453ac7);border:1px solid #ffffff30;border-radius:14px;color:#fff;font-size:24px;box-shadow:0 8px 22px #0004}
+dialog.editor-sheet.schedule-editor .editor-title-icon{background:linear-gradient(145deg,#219bff,#0755bb)}
+dialog.editor-sheet .modal-head .icon-btn{background:#ffffff12;color:#edf3ff;border:0;width:39px;height:39px;border-radius:13px}
+dialog.editor-sheet .dialog-body label{padding:11px 12px 12px;background:linear-gradient(180deg,#17243d,#121e35);border:1px solid #ffffff09;border-radius:16px;color:#e3eaf9;gap:8px;font-size:12px;font-weight:650}
+dialog.editor-sheet .dialog-body label:focus-within{border-color:#7089ff80;box-shadow:0 0 0 2px #5878ff1a}
+dialog.editor-sheet .dialog-body input:not([type=checkbox]),dialog.editor-sheet .dialog-body select,dialog.editor-sheet .dialog-body textarea{background:#1a2947;color:#f9fbff;border-color:#334667;border-radius:12px;min-height:46px;font-size:14px;padding:11px 13px}
+dialog.editor-sheet .dialog-body input::placeholder,dialog.editor-sheet .dialog-body textarea::placeholder{color:#91a2c0}
+dialog.editor-sheet .dialog-body .form-actions{border:0;margin:5px 0 0;padding:8px 0 2px;background:transparent}
+dialog.editor-sheet .dialog-body .form-actions .primary{border:0;border-radius:15px;min-height:51px;background:linear-gradient(110deg,#34b5ff,#3d4ff9);box-shadow:0 7px 20px #296bff32;color:white;font-weight:750}
+dialog.editor-sheet#noteDialog .dialog-body .form-actions .primary{background:linear-gradient(110deg,#a34dff,#6c36f5)}
+dialog.editor-sheet .dialog-body .form-actions .danger{background:#622b3b44;color:#ff9fb1;border:1px solid #d7537340}
+dialog.editor-sheet .dialog-body label.note-pin{background:linear-gradient(180deg,#17243d,#121e35);color:#eef3ff;border:1px solid #ffffff0f}
+dialog.editor-sheet .dialog-body small,dialog.editor-sheet .dialog-body .hint{color:#aebcda}
+dialog.editor-sheet.schedule-editor #lessonForm{gap:10px}
+dialog.editor-sheet.schedule-editor #lessonForm>.row{gap:9px}
+dialog.editor-sheet.schedule-editor #editLessons{border-top:1px solid #ffffff18}
+@media(max-width:700px){
+dialog.editor-sheet .dialog-body{gap:12px;padding:23px 15px calc(15px + env(safe-area-inset-bottom))}
+dialog.editor-sheet .modal-head{margin:-23px -15px 0;padding:30px 15px 23px}
+dialog.editor-sheet .dialog-body .form-actions{position:sticky;bottom:calc(-15px - env(safe-area-inset-bottom));z-index:2;background:linear-gradient(180deg,#0c1426dd,#0c1426);padding:12px 0 6px}
+}
