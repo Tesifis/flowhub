@@ -296,3 +296,9 @@ dialog .row{min-width:0}
 #viewSchedule .weekdays button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:54px}
 #viewSchedule .weekdays button strong{font-size:15px;font-weight:700;color:inherit}
 #viewSchedule .weekdays button span{font-size:11px}
+
+/* Two-week schedule navigation */
+#viewSchedule .week-switch{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 0 12px}
+#viewSchedule .week-switch button{background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:10px;min-width:38px;min-height:38px;font-size:25px}
+#weekLabel{color:var(--text);font-size:12px;text-align:center;font-weight:650}
+#scheduleSwipe{touch-action:pan-y}
