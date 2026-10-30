@@ -163,6 +163,29 @@ function activateView(view){
  window.scrollTo(0,0);
 }
 document.querySelectorAll('.nav-item').forEach(b=>b.addEventListener('click',()=>{activateView(b.dataset.view)}));
+const swipeViews=['home','tasks','notes','more'];
+let navSwipe=null;
+document.addEventListener('touchstart',event=>{
+ if(event.touches.length!==1||document.querySelector('dialog[open]')){navSwipe=null;return}
+ const target=event.target;
+ if(target.closest('#scheduleSwipe,#activityGrid,input,textarea,select,[contenteditable="true"],.bottom-nav,.note-tabs,.task-tabs,[role="tablist"],.habit-week,.checklist-edit-row')){navSwipe=null;return}
+ const active=document.querySelector('.nav-item.is-active')?.dataset.view;
+ if(!swipeViews.includes(active)){navSwipe=null;return}
+ const t=event.touches[0];navSwipe={x:t.clientX,y:t.clientY,view:active};
+},{passive:true});
+document.addEventListener('touchend',event=>{
+ if(!navSwipe||!event.changedTouches.length)return;
+ const gesture=navSwipe;navSwipe=null;
+ if(document.querySelector('dialog[open]'))return;
+ const t=event.changedTouches[0],dx=t.clientX-gesture.x,dy=t.clientY-gesture.y;
+ if(Math.abs(dx)<85||Math.abs(dx)<Math.abs(dy)*1.5)return;
+ const current=document.querySelector('.nav-item.is-active')?.dataset.view;
+ if(current!==gesture.view)return;
+ const next=swipeViews.indexOf(current)+(dx<0?1:-1);
+ if(next>=0&&next<swipeViews.length)activateView(swipeViews[next]);
+},{passive:true});
+document.addEventListener('touchcancel',()=>navSwipe=null,{passive:true});
+
 $('navAdd').addEventListener('click',()=>$('addChoiceDialog').showModal());
 $('choiceTask').addEventListener('click',()=>{$('addChoiceDialog').close();openTask()});
 $('choiceNote').addEventListener('click',()=>{$('addChoiceDialog').close();openNote()});
