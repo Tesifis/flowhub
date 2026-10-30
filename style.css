@@ -112,3 +112,26 @@ button:active{opacity:.86}
 .home-empty{background:var(--panel);border:1px dashed var(--border);border-radius:13px;padding:14px;color:var(--muted);font-size:12px}
 .home-preview .text-button{font-size:12px}
 .home-preview .habit-progress{height:5px}
+
+/* Mobile 2.0 · visual consistency & motion */
+:root{--motion-fast:150ms;--motion-page:220ms}
+button{-webkit-tap-highlight-color:transparent}
+#theme,#settings{display:grid;place-items:center}
+#theme svg,#settings svg,.quick-symbol svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#theme:hover,#settings:hover{background:var(--accent-soft);border-color:var(--accent-soft)}
+.quick-links button,.menu-stack button,.task,.habit,.home-task,.panel{transition:border-color var(--motion-fast) ease,background-color var(--motion-fast) ease,transform var(--motion-fast) ease}
+.quick-links button:active,.menu-stack button:active{transform:scale(.985)}
+.quick-links button:focus-visible,.nav-item:focus-visible,.nav-add:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.quick-symbol{border-radius:10px}
+.section-title{min-height:27px}
+.home-habit-label{align-items:baseline}
+.habit-progress span{transition:width 250ms ease}
+.task:has(.task-check:checked){opacity:.75}
+.task-check{cursor:pointer}
+.nav-item{min-height:44px;justify-content:center}
+.nav-item.is-active .nav-glyph{background:var(--accent-soft)}
+#viewHome:not([hidden]),#viewTasks:not([hidden]),#viewNotes:not([hidden]),#viewHabits:not([hidden]),#viewMore:not([hidden]){animation:page-in var(--motion-page) ease-out both}
+@keyframes page-in{from{opacity:.65;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+dialog[open]{animation:dialog-in 180ms ease-out}
+@keyframes dialog-in{from{opacity:.8;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
