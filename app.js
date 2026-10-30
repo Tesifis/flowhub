@@ -15,6 +15,15 @@ function save(){localStorage.setItem(KEY,JSON.stringify(state));dirty=true;rende
 function changeTheme(){const mode=state.theme==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):state.theme;document.documentElement.dataset.theme=mode;$('themeSelect').value=state.theme;$('theme').textContent=mode==='dark'?'☀':'☾';}
 $('theme').onclick=()=>{state.theme=state.theme==='dark'?'light':'dark';save()};$('themeSelect').onchange=e=>{state.theme=e.target.value;save()};
 function scheduleStatus(lessons,d){const today=d===new Date().getDay(),t=new Date().toTimeString().slice(0,5);if(!today)return '';if(lessons.start<=t&&t<lessons.end)return 'Сейчас идёт';if(lessons.start>t)return 'Далее';return ''}
+let activeView='home';
+function showView(view){
+ if(!['home','tasks','habits'].includes(view))return;
+ activeView=view;
+ for(const section of document.querySelectorAll('[data-view]'))section.hidden=section.dataset.view!==view;
+ for(const tab of document.querySelectorAll('[data-nav]')){const selected=tab.dataset.nav===view;tab.classList.toggle('active',selected);if(selected)tab.setAttribute('aria-current','page');else tab.removeAttribute('aria-current');}
+ window.scrollTo({top:0,behavior:'instant'});
+}
+document.querySelector('.bottom-nav').addEventListener('click',e=>{const tab=e.target.closest('[data-nav]');if(tab)showView(tab.dataset.nav)});
 function render(){changeTheme();const dt=new Date();$('date').textContent=new Intl.DateTimeFormat('ru-RU',{weekday:'long',day:'numeric',month:'long'}).format(dt);const open=state.tasks.filter(t=>!t.deleted&&!t.done);$('summary').textContent=`${open.filter(t=>t.due===nowday()).length} дел на сегодня · ${state.habits.filter(h=>!h.deleted).length} привычек`;
 $('days').innerHTML=[1,2,3,4,5,6,0].map(d=>`<button data-day="${d}" class="${d===selectedDay?'active':''} ${d===dt.getDay()?'current':''}">${days[d]}</button>`).join('');
 const lessons=state.lessons.filter(x=>!x.deleted&&x.day===selectedDay).sort((a,b)=>a.start.localeCompare(b.start));
@@ -76,5 +85,5 @@ $('syncNow').onclick=async()=>{try{readCfg();if(!userId)throw Error('Снача�
 try{const ss=JSON.parse(sessionStorage.getItem('fh_session')||'null');if(ss&&ss.expires>Date.now()+20000){token=ss.token;userId=ss.userId;$('logout').hidden=false;status('Авторизован')}}catch{}
 window.addEventListener('online',sync);document.addEventListener('visibilitychange',()=>{if(!document.hidden)sync()});setInterval(()=>{if(!document.hidden){render();sync()}},60000);
 if('serviceWorker' in navigator&&location.protocol!=='file:')window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
-render();if(userId)sync();
+showView('home');render();if(userId)sync();
 })();
