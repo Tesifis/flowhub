@@ -135,3 +135,16 @@ button{-webkit-tap-highlight-color:transparent}
 dialog[open]{animation:dialog-in 180ms ease-out}
 @keyframes dialog-in{from{opacity:.8;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+/* Settings dialog viewport fixes */
+dialog{box-sizing:border-box;width:min(440px,calc(100vw - 24px));max-width:calc(100vw - 24px);min-width:0;max-height:min(86dvh,760px);margin:auto;overflow:hidden;inset:0;padding:0}
+dialog[open]{display:block}
+dialog .dialog-body{box-sizing:border-box;width:100%;min-width:0;max-width:100%;max-height:min(86dvh,760px);overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;padding:20px;align-content:start}
+dialog .dialog-body>*{min-width:0;max-width:100%}
+dialog .dialog-body label{min-width:0;max-width:100%;overflow-wrap:anywhere}
+dialog .dialog-body input,dialog .dialog-body textarea,dialog .dialog-body select,dialog .wide-secondary{min-width:0;width:100%;max-width:100%;box-sizing:border-box}
+dialog .form-actions{min-width:0;max-width:100%;flex-wrap:wrap}
+dialog .form-actions button{min-width:0;white-space:normal}
+dialog .hint{overflow-wrap:anywhere}
+dialog .row{min-width:0}
+@media(max-width:400px){dialog .dialog-body{padding:16px}dialog .form-actions.wrap{justify-content:stretch}dialog .form-actions.wrap button{flex:1 1 auto}}
