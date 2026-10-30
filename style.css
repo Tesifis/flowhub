@@ -291,3 +291,8 @@ dialog .row{min-width:0}
 .habit-icon svg{width:22px;height:22px;display:block}
 .habit-icon-choice .habit-icon{width:36px;height:36px}
 @media(max-width:360px){.habit-icon-choices{gap:5px}.habit-icon-choice{font-size:10px}}
+
+/* Schedule weekdays show dates; habit weekday tabs stay date-free */
+#viewSchedule .weekdays button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:54px}
+#viewSchedule .weekdays button strong{font-size:15px;font-weight:700;color:inherit}
+#viewSchedule .weekdays button span{font-size:11px}
