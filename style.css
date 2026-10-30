@@ -107,3 +107,42 @@ dialog{border-radius:17px}
 
 /* Habits 2.0 */
 .habits .tasks-heading{padding-bottom:17px}.habits>.section-title{margin-top:5px}.habit{border-radius:15px;gap:13px;padding:16px}.habit-name{font-size:15px}.habit-actions{flex-shrink:0}.habit-actions .habit-quick{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:700;min-width:38px}.habit-actions .habit-quick.is-done{background:var(--accent);color:var(--bg)}.habit-progress{height:6px}.habit-overview{color:var(--muted);font-size:12px;margin:8px 0 0}.habits .stats{margin-top:10px}
+
+/* FlowHub 3.3 — unified reference-inspired final visual system */
+:root{font-family:Inter,"Segoe UI",system-ui,sans-serif;--bg:#f5f6fa;--panel:#fff;--text:#25283d;--muted:#85899e;--border:#e6e8f0;--accent:#7767ec;--accent-soft:#f0edff;--shadow:0 8px 30px rgba(50,43,99,.04)}
+:root[data-theme=dark]{--bg:#11111c;--panel:#1d1d30;--text:#f4f2ff;--muted:#9b99b8;--border:#30304a;--accent:#a29aff;--accent-soft:#292544;--shadow:0 6px 18px rgba(0,0,0,.10)}
+body{background:var(--bg);letter-spacing:-.1px}
+.app{max-width:690px;padding:0 18px 180px}
+header{border-bottom:0;padding:23px 1px 15px}
+.brand{font-size:21px;font-weight:800;letter-spacing:-.7px;gap:10px}
+.logo{width:38px;height:38px;background:none;border-radius:12px;overflow:hidden}
+.logo img{display:block;width:100%;height:100%}
+.head-actions button,.icon-btn{background:var(--panel);border-color:var(--border);border-radius:12px}
+.dashboard-heading{padding:22px 0 17px}.dashboard-heading h1{font-size:28px;font-weight:800;letter-spacing:-.9px}
+h2{font-size:17px;font-weight:750;letter-spacing:-.3px}
+.panel,.metric-card,.next-lesson,.task,.habit,.note-card{border-radius:16px;border:1px solid var(--border);background:var(--panel);box-shadow:var(--shadow)}
+.next-lesson{border-left:0;padding:19px;gap:9px;position:relative;overflow:hidden}
+.next-lesson:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--accent)}
+.next-lesson strong{font-size:17px;line-height:1.35}.next-tag{font-size:11px;font-weight:750;letter-spacing:.15px}
+.dashboard-metrics{gap:12px;margin-top:13px}.metric-card{padding:17px}.metric-main strong{font-size:17px}
+.metric-ring{width:47px;height:47px}.metric-ring:after{inset:7px}
+.task{padding:15px 14px;gap:13px}.task-name{font-weight:650;font-size:14px}.task-check{accent-color:var(--accent)}
+.task-edit{color:var(--muted);font-size:17px}
+.lesson{background:var(--bg);border-radius:12px}.lesson.now{background:var(--accent-soft)}
+.schedule-week{padding:0 1px}.weekdays button.active{background:var(--accent);color:#fff}
+.habit{padding:17px;gap:14px}.habit-name{font-size:15px;font-weight:750}
+.habit-progress{background:var(--border);height:7px}.habit-progress span{background:var(--accent)}
+.stats,.activity-grid{font-variant-numeric:tabular-nums}.activity-day{border-radius:7px}
+.notes-search,.quick-task-form,.note-create{border-radius:14px}
+.notes-grid{gap:12px}.note-card{padding:16px}.note-open{font-size:15px}
+.note-tag{border-radius:7px;font-weight:650}
+.tasks-heading h1{font-size:27px;font-weight:800;letter-spacing:-.7px}
+.task-filters button{border-radius:11px;padding:10px 13px}.task-filters button.active{background:var(--accent);color:#fff}
+.bottom{background:var(--bg);border-color:var(--border);padding-top:9px}
+.bottom-inner{gap:9px}.bottom-nav{gap:6px}
+.nav-tab{padding:7px 3px;border-radius:12px;min-height:49px;font-size:11px;flex-direction:column;gap:1px}
+.nav-tab span{font-size:20px}.nav-tab.active{background:var(--accent-soft);color:var(--accent)}
+.add-btn{background:#796cf2!important;color:#fff!important;border-radius:13px;padding:14px;font-weight:750}
+dialog{background:var(--panel);border-radius:20px}.dialog-body input,.dialog-body select,.dialog-body textarea{background:var(--bg);border-color:var(--border)}
+.form-actions .primary,.primary{background:#796cf2!important;border-color:#796cf2!important}
+@media(max-width:400px){.dashboard-heading h1{font-size:26px}.metric-card{padding:12px}.next-lesson{padding:15px}.notes-grid{gap:8px}.note-card{padding:12px}}
