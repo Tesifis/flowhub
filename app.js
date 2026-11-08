@@ -190,7 +190,7 @@ function scheduleLessonDuplicate(item){
 function showScheduleImportPreview(){
  const exists=scheduleImportCandidates.filter(scheduleLessonDuplicate).length;
  const added=scheduleImportCandidates.length-exists;
- $('scheduleImportPreview').innerHTML=scheduleImportCandidates.map(l=>`<div class="edit-lesson"><span>${esc(days[l.day])}, ${esc(l.start)}–${esc(l.end)} · ${esc(l.name)} ${l.room?'· '+esc(l.room):''} · ${esc(weekLabel(l.week))}${scheduleLessonDuplicate(l)?' · Уже есть':''}</span></div>`).join('');
+ $('scheduleImportPreview').innerHTML=scheduleImportCandidates.map(l=>`<div class="edit-lesson"><span>${esc(days[l.day])}, ${esc(l.start)}–${esc(l.end)} · ${esc(l.name)} ${l.room?'· '+esc(l.room):''} · ${esc(l.week==='all'?'Каждую неделю':weekLabel(l.week))}${scheduleLessonDuplicate(l)?' · Уже есть':''}</span></div>`).join('');
  $('scheduleImportApply').disabled=added===0;
  scheduleImportMessage(scheduleImportCandidates.length?'Распознано '+scheduleImportCandidates.length+' повторяющихся пар. Новых: '+added+', уже есть: '+exists+'. Проверь список перед сохранением.':'Повторяющиеся пары не найдены. Проверь содержимое файла.');
 }
