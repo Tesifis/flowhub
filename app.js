@@ -208,6 +208,7 @@ $('scheduleImportOpen').onclick=()=>{
  const cfg=scheduleImportSettings();
  $('scheduleGroup').value=cfg.group||'';
  $('scheduleSourceUrl').value=cfg.url||'';
+ $('scheduleRelayUrl').value=cfg.relay||'';
  $('scheduleIcsFile').value='';
  $('scheduleImportPreview').innerHTML='';
  $('scheduleImportApply').disabled=true;
@@ -217,10 +218,14 @@ $('scheduleImportOpen').onclick=()=>{
 };
 function storeScheduleImportSettings(){
  const group=$('scheduleGroup').value.trim().toUpperCase(),url=$('scheduleSourceUrl').value.trim();
- if(url&&!/^https:\/\/lks\.bmstu\.ru\/schedule\/[a-f0-9-]{30,}$/i.test(url)){
+ const relay=$('scheduleRelayUrl').value.trim().replace(/\/+$/,'');
+ if(url&&!/^https:\/\/lks\.bmstu\.ru\/schedule\/[a-f0-9-]{36}$/i.test(url)){
   toast('Нужна ссылка на расписание группы из lks.bmstu.ru');return false;
  }
- localStorage.setItem(scheduleImportSettingKey,JSON.stringify({group,url}));
+ if(relay&&!/^https:\/\/[a-z0-9.-]+(?::[0-9]+)?(?:\/[a-z0-9/_-]*)?$/i.test(relay)){
+  toast('Укажи HTTPS-адрес сервера импорта');return false;
+ }
+ localStorage.setItem(scheduleImportSettingKey,JSON.stringify({group,url,relay}));
  return true;
 }
 $('scheduleOpenSource').onclick=()=>{
@@ -231,19 +236,20 @@ $('scheduleOpenSource').onclick=()=>{
 $('scheduleFetchSource').onclick=async()=>{
  if(!storeScheduleImportSettings())return;
  const url=$('scheduleSourceUrl').value.trim();
+ const relay=$('scheduleRelayUrl').value.trim().replace(/\/+$/,'');
  if(!url){scheduleImportMessage('Сначала вставь ссылку на расписание группы');return}
  const match=url.match(/^https:\/\/lks\.bmstu\.ru\/schedule\/([a-f0-9-]{36})$/i);
  if(!match){scheduleImportMessage('Укажи ссылку на страницу группы МГТУ');return}
+ if(!relay){scheduleImportMessage('Для автоматической загрузки нужно указать адрес опубликованного сервера. Пока используй файл .ics.');return}
  const button=$('scheduleFetchSource');button.disabled=true;
- scheduleImportMessage('Загружаю календарь с сайта МГТУ...');
+ scheduleImportMessage('Загружаю календарь через сервер...');
  try{
-  const endpoint='https://lks.bmstu.ru/lks-back/srv/v2/ics/'+match[1];
-  const response=await fetch(endpoint,{credentials:'omit',mode:'cors',cache:'no-store'});
+  const response=await fetch(relay+'/ics/'+match[1],{credentials:'omit',mode:'cors',cache:'no-store'});
   if(!response.ok)throw Error('HTTP '+response.status);
   const result=parseScheduleIcs(await response.text());
   scheduleImportCandidates=result.lessons;showScheduleImportPreview();
  }catch(error){
-  scheduleImportMessage('Не получилось загрузить напрямую (возможна блокировка CORS). Открой расписание, скачай календарь .ics и выбери его ниже. '+(error?.message||''));
+  scheduleImportMessage('Не получилось получить расписание через сервер. Проверь адрес сервера или импортируй .ics. '+(error?.message||''));
  }finally{button.disabled=false}
 };
 $('scheduleIcsFile').onchange=async e=>{
