@@ -228,6 +228,24 @@ $('scheduleOpenSource').onclick=()=>{
  const url=$('scheduleSourceUrl').value.trim()||'https://lks.bmstu.ru/schedule/list';
  window.open(url,'_blank','noopener,noreferrer');
 };
+$('scheduleFetchSource').onclick=async()=>{
+ if(!storeScheduleImportSettings())return;
+ const url=$('scheduleSourceUrl').value.trim();
+ if(!url){scheduleImportMessage('Сначала вставь ссылку на расписание группы');return}
+ const match=url.match(/^https:\/\/lks\.bmstu\.ru\/schedule\/([a-f0-9-]{36})$/i);
+ if(!match){scheduleImportMessage('Укажи ссылку на страницу группы МГТУ');return}
+ const button=$('scheduleFetchSource');button.disabled=true;
+ scheduleImportMessage('Загружаю календарь с сайта МГТУ...');
+ try{
+  const endpoint='https://lks.bmstu.ru/lks-back/srv/v2/ics/'+match[1];
+  const response=await fetch(endpoint,{credentials:'omit',mode:'cors',cache:'no-store'});
+  if(!response.ok)throw Error('HTTP '+response.status);
+  const result=parseScheduleIcs(await response.text());
+  scheduleImportCandidates=result.lessons;showScheduleImportPreview();
+ }catch(error){
+  scheduleImportMessage('Не получилось загрузить напрямую (возможна блокировка CORS). Открой расписание, скачай календарь .ics и выбери его ниже. '+(error?.message||''));
+ }finally{button.disabled=false}
+};
 $('scheduleIcsFile').onchange=async e=>{
  scheduleImportCandidates=[];$('scheduleImportApply').disabled=true;$('scheduleImportPreview').innerHTML='';
  const file=e.target.files?.[0];if(!file)return;
