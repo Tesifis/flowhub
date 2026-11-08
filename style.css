@@ -441,3 +441,13 @@ dialog.editor-sheet .editor-title-icon svg{width:24px;height:24px;display:block}
 .edit-lesson-open{flex:1;min-width:0;text-align:left;border:0;background:transparent;color:var(--text);font-size:12px;padding:8px;cursor:pointer}
 .edit-lesson-open:focus-visible{outline:2px solid var(--accent)}
 #lessonCancelEdit{border:1px solid #44577d;background:#1a2947;color:#d9e5ff;border-radius:12px;padding:10px 12px}
+
+/* BMSTU schedule import */
+#scheduleImportDialog .dialog-body{display:grid;gap:13px}
+#scheduleImportDialog label{display:grid;gap:7px}
+#scheduleImportDialog input[type=file]{width:100%;max-width:100%;font-size:13px}
+#scheduleImportDialog .form-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px}
+#scheduleImportDialog .form-actions button{min-height:42px}
+.schedule-import-preview{display:grid;gap:6px;max-height:38vh;overflow-y:auto}
+.schedule-import-preview .edit-lesson{padding:10px 12px;line-height:1.5}
+#scheduleImportDialog #scheduleImportApply:disabled{opacity:.45;cursor:not-allowed}
