@@ -134,17 +134,29 @@ const scheduleImportSettingKey='flowhub_kf_schedule_import';
 function scheduleImportSettings(){try{return JSON.parse(localStorage.getItem(scheduleImportSettingKey)||'{}')}catch{return {}}}
 function scheduleImportMessage(message){$('scheduleImportStatus').textContent=message}
 function icsDate(value){
- const m=String(value||'').match(/^(\d{4})(\d{2})(\d{2})T?(\d{2})?(\d{2})?/);
+ const raw=String(value||'').trim();
+ const m=raw.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})?(Z)?$/i);
  if(!m)return null;
- const day=m[1]+'-'+m[2]+'-'+m[3],time=m[4]?m[4]+':'+(m[5]||'00'):null;
- const date=new Date(day+'T12:00:00Z');
- if(Number.isNaN(date.getTime())||date.toISOString().slice(0,10)!==day)return null;
- return {day,time,weekday:date.getUTCDay(),kind:weekKind(new Date(day+'T12:00:00'))};
+ const utc=!!m[7];
+ let d;
+ if(utc){
+  const timestamp=Date.UTC(Number(m[1]),Number(m[2])-1,Number(m[3]),Number(m[4]),Number(m[5]),Number(m[6]||0));
+  d=new Date(timestamp+3*60*60*1000); // KF BMSTU is in the UTC+3 time zone
+ }else{
+  d=new Date(Date.UTC(Number(m[1]),Number(m[2])-1,Number(m[3]),Number(m[4]),Number(m[5]),Number(m[6]||0)));
+ }
+ if(Number.isNaN(d.getTime()))return null;
+ const day=d.toISOString().slice(0,10);
+ return {day,time:d.toISOString().slice(11,16),weekday:d.getUTCDay(),kind:weekKind(new Date(day+'T12:00:00'))};
 }
 function icsUnescape(s){return String(s||'').replace(/\\[nN]/g,' ').replace(/\\,/g,',').replace(/\\;/g,';').replace(/\\\\/g,'\\').trim()}
 function parseScheduleIcs(input){
  if(input.length>2000000)throw Error('Файл слишком большой');
- const lines=input.replace(/\r\n?/g,'\n').split('\n');
+ // Chrome can save the calendar endpoint as an HTML-wrapped text file.
+ const first=input.indexOf('BEGIN:VCALENDAR'),last=input.indexOf('END:VCALENDAR');
+ if(first<0||last<first)throw Error('Не найден календарь VCALENDAR');
+ const raw=input.slice(first,last+'END:VCALENDAR'.length);
+ const lines=raw.replace(/\r\n?/g,'\n').split('\n');
  const unfolded=[];
  for(const line of lines){if(/^[ \t]/.test(line)&&unfolded.length)unfolded[unfolded.length-1]+=line.slice(1);else unfolded.push(line)}
  const events=[];let ev=null;
@@ -153,33 +165,30 @@ function parseScheduleIcs(input){
   if(line==='END:VEVENT'){if(ev)events.push(ev);ev=null;continue}
   if(!ev)continue;
   const sep=line.indexOf(':');if(sep<0)continue;
-  const key=line.slice(0,sep).split(';')[0].toUpperCase(),value=line.slice(sep+1);
+  const left=line.slice(0,sep),key=left.split(';')[0].toUpperCase(),value=line.slice(sep+1);
   if(['SUMMARY','LOCATION','DESCRIPTION','DTSTART','DTEND','RRULE'].includes(key))ev[key]=value;
+  if(key==='ATTENDEE'){
+   const cn=left.match(/(?:^|;)CN="([^"]+)"/i)||left.match(/(?:^|;)CN=([^;]+)/i);
+   if(cn)ev.TEACHER=icsUnescape(cn[1]);
+  }
  }
- const groups=new Map();let skipped=0;
+ const lessons=[];let skipped=0;
+ const seen=new Set();
  for(const ev of events){
   const from=icsDate(ev.DTSTART),to=icsDate(ev.DTEND);
-  if(!from?.time||!to?.time||!ev.SUMMARY||from.weekday===0){skipped++;continue}
+  if(!from||!to||!ev.SUMMARY||from.weekday===0||to.day!==from.day){skipped++;continue}
   const name=icsUnescape(ev.SUMMARY).slice(0,100);
-  const room=icsUnescape(ev.LOCATION||'').slice(0,100);
+  const room=[icsUnescape(ev.LOCATION||''),icsUnescape(ev.DESCRIPTION||''),icsUnescape(ev.TEACHER||'')].filter(Boolean).join(' · ').slice(0,100);
   if(!name||to.time<=from.time){skipped++;continue}
-  const base={day:from.weekday,name,room,start:from.time,end:to.time};
   const recurring=/FREQ=WEEKLY/i.test(ev.RRULE||'');
   const interval=Number((ev.RRULE||'').match(/(?:^|;)INTERVAL=(\d+)/i)?.[1]||1);
-  const recurrenceWeek=recurring?(interval===1?'all':interval===2?from.kind:null):null;
-  if(recurring&&!recurrenceWeek){skipped++;continue}
-  const key=JSON.stringify(base);
-  if(!groups.has(key))groups.set(key,{base,dates:new Set(),weeks:new Set(),recurrence:new Set()});
-  const g=groups.get(key);g.dates.add(from.day);g.weeks.add(from.kind);if(recurrenceWeek)g.recurrence.add(recurrenceWeek);
- }
- const lessons=[];
- for(const g of groups.values()){
-  let week=null;
-  if(g.recurrence.has('all')||g.recurrence.size>1)week='all';
-  else if(g.recurrence.size===1)week=[...g.recurrence][0];
-  else if(g.dates.size>=2)week=g.weeks.size===2?'all':[...g.weeks][0];
-  if(!week){skipped++;continue}
-  lessons.push({...g.base,week});
+  // One-off events cannot be safely represented in the recurring weekly schedule.
+  if(!recurring||![1,2].includes(interval)){skipped++;continue}
+  const lesson={day:from.weekday,name,room,start:from.time,end:to.time,week:interval===1?'all':from.kind};
+  const key=JSON.stringify(lesson);
+  if(seen.has(key))continue;
+  seen.add(key);
+  lessons.push(lesson);
  }
  lessons.sort((a,b)=>a.day-b.day||a.start.localeCompare(b.start)||a.name.localeCompare(b.name));
  return {lessons,events:events.length,skipped};
