@@ -433,3 +433,11 @@ dialog.editor-sheet .priority-dot.medium{background:#ffbc31}
 dialog.editor-sheet .priority-dot.high{background:#fa5e75}
 
 dialog.editor-sheet .editor-title-icon svg{width:24px;height:24px;display:block}
+
+/* Schedule: tap a lesson card to edit without recreating it. */
+#viewSchedule .lesson[data-lesson-open]{cursor:pointer;transition:border-color .15s ease,background-color .15s ease,transform .15s ease}
+#viewSchedule .lesson[data-lesson-open]:active{transform:scale(.99)}
+#viewSchedule .lesson[data-lesson-open]:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.edit-lesson-open{flex:1;min-width:0;text-align:left;border:0;background:transparent;color:var(--text);font-size:12px;padding:8px;cursor:pointer}
+.edit-lesson-open:focus-visible{outline:2px solid var(--accent)}
+#lessonCancelEdit{border:1px solid #44577d;background:#1a2947;color:#d9e5ff;border-radius:12px;padding:10px 12px}
