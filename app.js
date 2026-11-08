@@ -128,6 +128,121 @@ for(const id of ['todayList','upcomingList','doneList'])$(id).addEventListener('
 function openTask(id){editTask=id||null;const t=state.tasks.find(x=>x.id===id);$('taskTitle').textContent=t?'Изменить задачу':'Новая задача';$('taskName').value=t?.name||'';$('taskNote').value=t?.note||'';const due=t?.due||nowday();$('taskWhen').value=t?(!t.due?'none':t.due===nowday()?'today':t.due===dayAdd(nowday(),1)?'tomorrow':'date'):'today';$('taskDate').value=due;$('taskReminder').value=t?.reminderTime||'';$('taskRepeat').value=t?.repeat||'none';const priority= t?.priority||'medium';const radio=document.querySelector('input[name="taskPriority"][value="'+priority+'"]');if(radio)radio.checked=true;$('dateInputWrap').hidden=$('taskWhen').value!=='date';$('reminderWrap').hidden=$('taskWhen').value==='none';$('deleteTask').hidden=!t;$('taskDialog').showModal()}
 $('taskWhen').onchange=()=>{$('dateInputWrap').hidden=$('taskWhen').value!=='date';$('reminderWrap').hidden=$('taskWhen').value==='none'};$('taskForm').onsubmit=e=>{e.preventDefault();const name=$('taskName').value.trim();if(!name)return;const w=$('taskWhen').value,due=w==='none'?null:w==='today'?nowday():w==='tomorrow'?dayAdd(nowday(),1):$('taskDate').value;if(w==='date'&&!due){toast('Выбери дату');return}const t=state.tasks.find(t=>t.id===editTask);const reminderTime=due?$('taskReminder').value:'';const fields={name,note:$('taskNote').value,due,reminderTime,repeat:$('taskRepeat').value,priority:document.querySelector('input[name="taskPriority"]:checked')?.value||'medium',reminderSentAt:null,updatedAt:Date.now()};if(t)Object.assign(t,fields);else state.tasks.push({id:uid(),done:false,...fields});$('taskDialog').close();save()};
 $('deleteTask').onclick=()=>{const t=state.tasks.find(t=>t.id===editTask);if(t){t.deleted=true;t.updatedAt=Date.now();$('taskDialog').close();save()}};
+
+let scheduleImportCandidates=[];
+const scheduleImportSettingKey='flowhub_kf_schedule_import';
+function scheduleImportSettings(){try{return JSON.parse(localStorage.getItem(scheduleImportSettingKey)||'{}')}catch{return {}}}
+function scheduleImportMessage(message){$('scheduleImportStatus').textContent=message}
+function icsDate(value){
+ const m=String(value||'').match(/^(\\d{4})(\\d{2})(\\d{2})T?(\\d{2})?(\\d{2})?/);
+ if(!m)return null;
+ const day=m[1]+'-'+m[2]+'-'+m[3],time=m[4]?m[4]+':'+(m[5]||'00'):null;
+ const date=new Date(day+'T12:00:00Z');
+ if(Number.isNaN(date.getTime())||date.toISOString().slice(0,10)!==day)return null;
+ return {day,time,weekday:date.getUTCDay(),kind:weekKind(new Date(day+'T12:00:00'))};
+}
+function icsUnescape(s){return String(s||'').replace(/\\\\[nN]/g,' ').replace(/\\\\,/g,',').replace(/\\\\;/g,';').replace(/\\\\\\\\/g,'\\\\').trim()}
+function parseScheduleIcs(input){
+ if(input.length>2000000)throw Error('Файл слишком большой');
+ const lines=input.replace(/\\r\\n?/g,'\\n').split('\\n');
+ const unfolded=[];
+ for(const line of lines){if(/^[ \\t]/.test(line)&&unfolded.length)unfolded[unfolded.length-1]+=line.slice(1);else unfolded.push(line)}
+ const events=[];let ev=null;
+ for(const line of unfolded){
+  if(line==='BEGIN:VEVENT'){ev={};continue}
+  if(line==='END:VEVENT'){if(ev)events.push(ev);ev=null;continue}
+  if(!ev)continue;
+  const sep=line.indexOf(':');if(sep<0)continue;
+  const key=line.slice(0,sep).split(';')[0].toUpperCase(),value=line.slice(sep+1);
+  if(['SUMMARY','LOCATION','DESCRIPTION','DTSTART','DTEND','RRULE'].includes(key))ev[key]=value;
+ }
+ const groups=new Map();let skipped=0;
+ for(const ev of events){
+  const from=icsDate(ev.DTSTART),to=icsDate(ev.DTEND);
+  if(!from?.time||!to?.time||!ev.SUMMARY||from.weekday===0){skipped++;continue}
+  const name=icsUnescape(ev.SUMMARY).slice(0,100);
+  const room=icsUnescape(ev.LOCATION||'').slice(0,100);
+  if(!name||to.time<=from.time){skipped++;continue}
+  const base={day:from.weekday,name,room,start:from.time,end:to.time};
+  const recurring=/FREQ=WEEKLY/i.test(ev.RRULE||'');
+  const interval=Number((ev.RRULE||'').match(/(?:^|;)INTERVAL=(\\d+)/i)?.[1]||1);
+  const recurrenceWeek=recurring?(interval===1?'all':interval===2?from.kind:null):null;
+  if(recurring&&!recurrenceWeek){skipped++;continue}
+  const key=JSON.stringify(base);
+  if(!groups.has(key))groups.set(key,{base,dates:new Set(),weeks:new Set(),recurrence:new Set()});
+  const g=groups.get(key);g.dates.add(from.day);g.weeks.add(from.kind);if(recurrenceWeek)g.recurrence.add(recurrenceWeek);
+ }
+ const lessons=[];
+ for(const g of groups.values()){
+  let week=null;
+  if(g.recurrence.has('all')||g.recurrence.size>1)week='all';
+  else if(g.recurrence.size===1)week=[...g.recurrence][0];
+  else if(g.dates.size>=2)week=g.weeks.size===2?'all':[...g.weeks][0];
+  if(!week){skipped++;continue}
+  lessons.push({...g.base,week});
+ }
+ lessons.sort((a,b)=>a.day-b.day||a.start.localeCompare(b.start)||a.name.localeCompare(b.name));
+ return {lessons,events:events.length,skipped};
+}
+function scheduleLessonDuplicate(item){
+ return state.lessons.some(x=>!x.deleted&&Number(x.day)===item.day&&(x.week||'all')===item.week&&x.start===item.start&&x.end===item.end&&x.name.trim().toLocaleLowerCase('ru')===item.name.trim().toLocaleLowerCase('ru')&&String(x.room||'').trim().toLocaleLowerCase('ru')===item.room.trim().toLocaleLowerCase('ru'));
+}
+function showScheduleImportPreview(){
+ const exists=scheduleImportCandidates.filter(scheduleLessonDuplicate).length;
+ const added=scheduleImportCandidates.length-exists;
+ $('scheduleImportPreview').innerHTML=scheduleImportCandidates.map(l=>`<div class="edit-lesson"><span>${esc(days[l.day])}, ${esc(l.start)}–${esc(l.end)} · ${esc(l.name)} ${l.room?'· '+esc(l.room):''} · ${esc(weekLabel(l.week))}${scheduleLessonDuplicate(l)?' · Уже есть':''}</span></div>`).join('');
+ $('scheduleImportApply').disabled=added===0;
+ scheduleImportMessage(scheduleImportCandidates.length?'Распознано '+scheduleImportCandidates.length+' повторяющихся пар. Новых: '+added+', уже есть: '+exists+'. Проверь список перед сохранением.':'Повторяющиеся пары не найдены. Проверь содержимое файла.');
+}
+$('scheduleImportOpen').onclick=()=>{
+ $('scheduleDialog').close();
+ const cfg=scheduleImportSettings();
+ $('scheduleGroup').value=cfg.group||'';
+ $('scheduleSourceUrl').value=cfg.url||'';
+ $('scheduleIcsFile').value='';
+ $('scheduleImportPreview').innerHTML='';
+ $('scheduleImportApply').disabled=true;
+ scheduleImportCandidates=[];
+ scheduleImportMessage('Выбери файл .ics. Существующие пары не будут удалены.');
+ $('scheduleImportDialog').showModal();
+};
+function storeScheduleImportSettings(){
+ const group=$('scheduleGroup').value.trim().toUpperCase(),url=$('scheduleSourceUrl').value.trim();
+ if(url&&!/^https:\\/\\/lks\\.bmstu\\.ru\\/schedule\\/[a-f0-9-]{30,}$/i.test(url)){
+  toast('Нужна ссылка на расписание группы из lks.bmstu.ru');return false;
+ }
+ localStorage.setItem(scheduleImportSettingKey,JSON.stringify({group,url}));
+ return true;
+}
+$('scheduleOpenSource').onclick=()=>{
+ if(!storeScheduleImportSettings())return;
+ const url=$('scheduleSourceUrl').value.trim()||'https://lks.bmstu.ru/schedule/list';
+ window.open(url,'_blank','noopener,noreferrer');
+};
+$('scheduleIcsFile').onchange=async e=>{
+ scheduleImportCandidates=[];$('scheduleImportApply').disabled=true;$('scheduleImportPreview').innerHTML='';
+ const file=e.target.files?.[0];if(!file)return;
+ try{
+  if(!file.name.toLowerCase().endsWith('.ics'))throw Error('Нужен файл .ics');
+  const result=parseScheduleIcs(await file.text());
+  scheduleImportCandidates=result.lessons;
+  showScheduleImportPreview();
+  if(result.skipped)scheduleImportMessage($('scheduleImportStatus').textContent+' Не добавлены '+result.skipped+' разовых или неподдерживаемых записей.');
+ }catch(error){scheduleImportMessage('Ошибка файла: '+error.message)}
+};
+$('scheduleImportApply').onclick=()=>{
+ if(!storeScheduleImportSettings())return;
+ const fresh=scheduleImportCandidates.filter(l=>!scheduleLessonDuplicate(l));
+ if(!fresh.length){toast('Новых пар нет');return}
+ if(!confirm('Добавить '+fresh.length+' пар в расписание? Существующие пары останутся без изменений.'))return;
+ const timestamp=Date.now();
+ fresh.forEach(x=>state.lessons.push({id:uid(),...x,updatedAt:timestamp}));
+ scheduleImportCandidates=[];
+ $('scheduleImportDialog').close();
+ save();
+ toast('Добавлено пар: '+fresh.length);
+};
+
 function viewedWeekDate(){const m=mondayOf(new Date());m.setDate(m.getDate()+weekOffset*7);return m}
 function openScheduleEditor(id=null){
  const lesson=id?state.lessons.find(x=>x.id===id&&!x.deleted):null;
