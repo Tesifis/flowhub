@@ -32,6 +32,7 @@
 <label>Группа Калужского филиала<input id="scheduleGroup" maxlength="30" placeholder="Например, МК8-31Б" autocomplete="off"></label>
 <label>Ссылка на официальное расписание<input id="scheduleSourceUrl" type="url" placeholder="https://lks.bmstu.ru/schedule/..."></label>
 <div class="form-actions"><button type="button" id="scheduleOpenSource">Открыть расписание МГТУ</button><button type="button" class="primary" id="scheduleFetchSource">Загрузить по ссылке</button></div>
+<label>Адрес сервера импорта (настраивается один раз)<input id="scheduleRelayUrl" type="url" placeholder="https://имя.workers.dev" autocomplete="off"></label><p class="hint">Автозагрузка работает после подключения опубликованного сервера. При его отсутствии используй файл .ics.</p>
 <label>Календарный файл (.ics)<input id="scheduleIcsFile" type="file" accept=".ics,text/calendar"></label>
 <p id="scheduleImportStatus" class="hint" role="status">Импорт ничего не изменит, пока ты не нажмёшь «Сохранить пары».</p>
 <div id="scheduleImportPreview" class="schedule-import-preview"></div>
