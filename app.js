@@ -166,7 +166,7 @@ function parseScheduleIcs(input){
   if(!ev)continue;
   const sep=line.indexOf(':');if(sep<0)continue;
   const left=line.slice(0,sep),key=left.split(';')[0].toUpperCase(),value=line.slice(sep+1);
-  if(['SUMMARY','LOCATION','DESCRIPTION','DTSTART','DTEND','RRULE'].includes(key))ev[key]=value;
+  if(['UID','SUMMARY','LOCATION','DESCRIPTION','DTSTART','DTEND','RRULE'].includes(key))ev[key]=value;
   if(key==='ATTENDEE'){
    const cn=left.match(/(?:^|;)CN="([^"]+)"/i)||left.match(/(?:^|;)CN=([^;]+)/i);
    if(cn)ev.TEACHER=icsUnescape(cn[1]);
@@ -185,6 +185,7 @@ function parseScheduleIcs(input){
   // One-off events cannot be safely represented in the recurring weekly schedule.
   if(!recurring||![1,2].includes(interval)){skipped++;continue}
   const lesson={day:from.weekday,name,room,start:from.time,end:to.time,week:interval===1?'all':from.kind};
+  if(ev.UID)lesson.sourceUid=String(ev.UID).slice(0,120);
   const key=JSON.stringify(lesson);
   if(seen.has(key))continue;
   seen.add(key);
@@ -193,15 +194,30 @@ function parseScheduleIcs(input){
  lessons.sort((a,b)=>a.day-b.day||a.start.localeCompare(b.start)||a.name.localeCompare(b.name));
  return {lessons,events:events.length,skipped};
 }
-function scheduleLessonDuplicate(item){
- return state.lessons.some(x=>!x.deleted&&Number(x.day)===item.day&&(x.week||'all')===item.week&&x.start===item.start&&x.end===item.end&&x.name.trim().toLocaleLowerCase('ru')===item.name.trim().toLocaleLowerCase('ru')&&String(x.room||'').trim().toLocaleLowerCase('ru')===item.room.trim().toLocaleLowerCase('ru'));
+function scheduleLessonMatch(item){
+ if(item.sourceUid){
+  const linked=state.lessons.find(x=>x.sourceUid===item.sourceUid);
+  if(linked)return linked;
+ }
+ return state.lessons.find(x=>!x.deleted&&Number(x.day)===item.day&&(x.week||'all')===item.week&&x.start===item.start&&x.end===item.end&&x.name.trim().toLocaleLowerCase('ru')===item.name.trim().toLocaleLowerCase('ru')&&String(x.room||'').trim().toLocaleLowerCase('ru')===item.room.trim().toLocaleLowerCase('ru'));
+}
+function scheduleLessonDuplicate(item){return !!scheduleLessonMatch(item)}
+function scheduleImportDelta(item){
+ const existing=scheduleLessonMatch(item);
+ if(!existing)return 'new';
+ if(existing.deleted||existing.manualEdited)return 'protected';
+ const changed=['day','week','start','end','name','room'].some(k=>String(existing[k]??'')!==String(item[k]??''));
+ return changed&&existing.sourceUid&&existing.sourceUid===item.sourceUid?'update':'same';
 }
 function showScheduleImportPreview(){
- const exists=scheduleImportCandidates.filter(scheduleLessonDuplicate).length;
- const added=scheduleImportCandidates.length-exists;
- $('scheduleImportPreview').innerHTML=scheduleImportCandidates.map(l=>`<div class="edit-lesson"><span>${esc(days[l.day])}, ${esc(l.start)}–${esc(l.end)} · ${esc(l.name)} ${l.room?'· '+esc(l.room):''} · ${esc(l.week==='all'?'Каждую неделю':weekLabel(l.week))}${scheduleLessonDuplicate(l)?' · Уже есть':''}</span></div>`).join('');
- $('scheduleImportApply').disabled=added===0;
- scheduleImportMessage(scheduleImportCandidates.length?'Распознано '+scheduleImportCandidates.length+' повторяющихся пар. Новых: '+added+', уже есть: '+exists+'. Проверь список перед сохранением.':'Повторяющиеся пары не найдены. Проверь содержимое файла.');
+ const counts={new:0,update:0,same:0,protected:0};
+ const labels={new:'Новая',update:'Обновится',same:'Уже есть',protected:'Ручная правка / удалена'};
+ $('scheduleImportPreview').innerHTML=scheduleImportCandidates.map(l=>{
+  const status=scheduleImportDelta(l);counts[status]++;
+  return `<div class="edit-lesson"><span>${esc(days[l.day])}, ${esc(l.start)}–${esc(l.end)} · ${esc(l.name)} ${l.room?'· '+esc(l.room):''} · ${esc(l.week==='all'?'Каждую неделю':weekLabel(l.week))} · ${labels[status]}</span></div>`;
+ }).join('');
+ $('scheduleImportApply').disabled=counts.new+counts.update===0;
+ scheduleImportMessage('Новых: '+counts.new+', обновится: '+counts.update+', без изменений: '+counts.same+', защищено: '+counts.protected+'. Проверь список перед сохранением.');
 }
 $('scheduleImportOpen').onclick=()=>{
  $('scheduleDialog').close();
@@ -265,15 +281,22 @@ $('scheduleIcsFile').onchange=async e=>{
 };
 $('scheduleImportApply').onclick=()=>{
  if(!storeScheduleImportSettings())return;
- const fresh=scheduleImportCandidates.filter(l=>!scheduleLessonDuplicate(l));
- if(!fresh.length){toast('Новых пар нет');return}
- if(!confirm('Добавить '+fresh.length+' пар в расписание? Существующие пары останутся без изменений.'))return;
+ const updates=scheduleImportCandidates.filter(l=>scheduleImportDelta(l)==='update');
+ const fresh=scheduleImportCandidates.filter(l=>scheduleImportDelta(l)==='new');
+ if(!fresh.length&&!updates.length){toast('Изменений нет');return}
+ if(!confirm('Добавить '+fresh.length+' и обновить '+updates.length+' пар? Ручные исправления и удаления сохранятся.'))return;
  const timestamp=Date.now();
  fresh.forEach(x=>state.lessons.push({id:uid(),...x,updatedAt:timestamp}));
+ updates.forEach(x=>{
+  const old=scheduleLessonMatch(x);
+  if(old&&!old.deleted&&!old.manualEdited){
+   Object.assign(old,{day:x.day,week:x.week,start:x.start,end:x.end,name:x.name,room:x.room,updatedAt:timestamp});
+  }
+ });
  scheduleImportCandidates=[];
  $('scheduleImportDialog').close();
  save();
- toast('Добавлено пар: '+fresh.length);
+ toast('Добавлено: '+fresh.length+', обновлено: '+updates.length);
 };
 
 function viewedWeekDate(){const m=mondayOf(new Date());m.setDate(m.getDate()+weekOffset*7);return m}
@@ -308,7 +331,7 @@ $('lessonForm').onsubmit=e=>{
  if(end<=start){toast('Конец должен быть позже начала');return}
  const fields={day:Number($('lessonDay').value),week:$('lessonWeek').value,name,start,end,room:$('lessonRoom').value.trim(),updatedAt:Date.now()};
  const lesson=state.lessons.find(x=>x.id===editLesson&&!x.deleted);
- if(lesson)Object.assign(lesson,fields);
+ if(lesson){Object.assign(lesson,fields);if(lesson.sourceUid)lesson.manualEdited=true;}
  else state.lessons.push({id:uid(),...fields});
  $('scheduleDialog').close();
  editLesson=null;
