@@ -134,19 +134,19 @@ const scheduleImportSettingKey='flowhub_kf_schedule_import';
 function scheduleImportSettings(){try{return JSON.parse(localStorage.getItem(scheduleImportSettingKey)||'{}')}catch{return {}}}
 function scheduleImportMessage(message){$('scheduleImportStatus').textContent=message}
 function icsDate(value){
- const m=String(value||'').match(/^(\\d{4})(\\d{2})(\\d{2})T?(\\d{2})?(\\d{2})?/);
+ const m=String(value||'').match(/^(\d{4})(\d{2})(\d{2})T?(\d{2})?(\d{2})?/);
  if(!m)return null;
  const day=m[1]+'-'+m[2]+'-'+m[3],time=m[4]?m[4]+':'+(m[5]||'00'):null;
  const date=new Date(day+'T12:00:00Z');
  if(Number.isNaN(date.getTime())||date.toISOString().slice(0,10)!==day)return null;
  return {day,time,weekday:date.getUTCDay(),kind:weekKind(new Date(day+'T12:00:00'))};
 }
-function icsUnescape(s){return String(s||'').replace(/\\\\[nN]/g,' ').replace(/\\\\,/g,',').replace(/\\\\;/g,';').replace(/\\\\\\\\/g,'\\\\').trim()}
+function icsUnescape(s){return String(s||'').replace(/\\[nN]/g,' ').replace(/\\,/g,',').replace(/\\;/g,';').replace(/\\\\/g,'\\').trim()}
 function parseScheduleIcs(input){
  if(input.length>2000000)throw Error('Файл слишком большой');
- const lines=input.replace(/\\r\\n?/g,'\\n').split('\\n');
+ const lines=input.replace(/\r\n?/g,'\n').split('\n');
  const unfolded=[];
- for(const line of lines){if(/^[ \\t]/.test(line)&&unfolded.length)unfolded[unfolded.length-1]+=line.slice(1);else unfolded.push(line)}
+ for(const line of lines){if(/^[ \t]/.test(line)&&unfolded.length)unfolded[unfolded.length-1]+=line.slice(1);else unfolded.push(line)}
  const events=[];let ev=null;
  for(const line of unfolded){
   if(line==='BEGIN:VEVENT'){ev={};continue}
@@ -165,7 +165,7 @@ function parseScheduleIcs(input){
   if(!name||to.time<=from.time){skipped++;continue}
   const base={day:from.weekday,name,room,start:from.time,end:to.time};
   const recurring=/FREQ=WEEKLY/i.test(ev.RRULE||'');
-  const interval=Number((ev.RRULE||'').match(/(?:^|;)INTERVAL=(\\d+)/i)?.[1]||1);
+  const interval=Number((ev.RRULE||'').match(/(?:^|;)INTERVAL=(\d+)/i)?.[1]||1);
   const recurrenceWeek=recurring?(interval===1?'all':interval===2?from.kind:null):null;
   if(recurring&&!recurrenceWeek){skipped++;continue}
   const key=JSON.stringify(base);
@@ -208,7 +208,7 @@ $('scheduleImportOpen').onclick=()=>{
 };
 function storeScheduleImportSettings(){
  const group=$('scheduleGroup').value.trim().toUpperCase(),url=$('scheduleSourceUrl').value.trim();
- if(url&&!/^https:\\/\\/lks\\.bmstu\\.ru\\/schedule\\/[a-f0-9-]{30,}$/i.test(url)){
+ if(url&&!/^https:\/\/lks\.bmstu\.ru\/schedule\/[a-f0-9-]{30,}$/i.test(url)){
   toast('Нужна ссылка на расписание группы из lks.bmstu.ru');return false;
  }
  localStorage.setItem(scheduleImportSettingKey,JSON.stringify({group,url}));
