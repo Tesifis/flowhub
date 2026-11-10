@@ -1,4 +1,4 @@
-const CACHE='flowhub-shell-v46';
+const CACHE='flowhub-shell-v47';
 const SHELL=['./','./index.html','./style.css','./app.js','./manifest.webmanifest','./icon.svg'];
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)));
