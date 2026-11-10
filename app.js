@@ -46,7 +46,7 @@ function save(){localStorage.setItem(KEY,JSON.stringify(state));dirty=true;rende
 function changeTheme(){const mode=state.theme==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):state.theme;document.documentElement.dataset.theme=mode;$('themeSelect').value=state.theme;document.querySelectorAll('[data-theme-choice]').forEach(b=>{const on=b.dataset.themeChoice===state.theme;b.classList.toggle('selected',on);b.setAttribute('aria-pressed',String(on))});}
 $('themeSelect').onchange=e=>{state.theme=e.target.value;save()};
 function scheduleStatus(lessons,d){const today=d===new Date().getDay(),t=new Date().toTimeString().slice(0,5);if(!today)return '';if(lessons.start<=t&&t<lessons.end)return 'Сейчас идёт';if(lessons.start>t)return 'Далее';return ''}
-function render(){renderNotes();changeTheme();const dt=new Date();$('date').textContent=new Intl.DateTimeFormat('ru-RU',{weekday:'long',day:'numeric',month:'long'}).format(dt);const open=state.tasks.filter(t=>!t.deleted&&!t.done);$('hello').textContent='Главная';
+function render(){renderNotes();changeTheme();const dt=new Date();const homeSky=$('homeLandscape');if(homeSky){const hr=dt.getHours();homeSky.dataset.sky=(hr>=21||hr<6)?'night':(hr>=17||hr<21)?'sunset':'day';}$('date').textContent=new Intl.DateTimeFormat('ru-RU',{weekday:'long',day:'numeric',month:'long'}).format(dt);const open=state.tasks.filter(t=>!t.deleted&&!t.done);$('hello').textContent='Главная';
 const monday=mondayOf(dt);monday.setDate(monday.getDate()+weekOffset*7);
 const viewedDate=new Date(monday);viewedDate.setDate(monday.getDate()+((selectedDay+6)%7));
 const sunday=new Date(monday);sunday.setDate(monday.getDate()+6);
