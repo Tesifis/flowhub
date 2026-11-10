@@ -451,3 +451,42 @@ dialog.editor-sheet .editor-title-icon svg{width:24px;height:24px;display:block}
 .schedule-import-preview{display:grid;gap:6px;max-height:38vh;overflow-y:auto}
 .schedule-import-preview .edit-lesson{padding:10px 12px;line-height:1.5}
 #scheduleImportDialog #scheduleImportApply:disabled{opacity:.45;cursor:not-allowed}
+
+
+/* FlowHub integrated landscape header / responsive desktop navigation */
+#viewHome{position:relative;isolation:isolate}
+#viewHome>.screen-header{position:relative;z-index:2;padding:34px 26px 76px;margin:0 0 -52px;color:#fff}
+#viewHome>.screen-header h1{color:#fff;text-shadow:0 2px 14px #07142c70}
+#viewHome>.screen-header .date{color:#e6eaf6}
+#viewHome>.screen-header #settings{color:#fff;background:#ffffff18;border:1px solid #ffffff25}
+.home-landscape{position:absolute;z-index:0;inset:0 0 auto;height:218px;overflow:hidden;pointer-events:none;border-radius:0 0 28px 28px;background:linear-gradient(180deg,#528dc3 0%,#a9cbe5 65%,#f2b783 100%)}
+.home-landscape .landscape-orb{position:absolute;width:49px;height:49px;right:17%;top:34px;border-radius:50%;background:#fff2c2;box-shadow:0 0 32px #ffefa6a0}
+.home-landscape .landscape-hill{position:absolute;left:-12%;width:124%;height:165px;bottom:-38px;clip-path:polygon(0 83%,14% 53%,26% 70%,42% 22%,55% 60%,70% 31%,84% 69%,100% 37%,100% 100%,0 100%)}
+.home-landscape .landscape-hill-back{background:#6386a3;bottom:-10px;opacity:.9}
+.home-landscape .landscape-hill-front{background:#2a5266;transform:scaleX(-1);bottom:-52px}
+.home-landscape .landscape-forest{position:absolute;bottom:-2px;width:100%;height:90px;background:linear-gradient(0deg,#14303d,#14303d00);clip-path:polygon(0 100%,0 60%,3% 60%,5% 31%,7% 59%,10% 58%,12% 24%,15% 59%,18% 59%,20% 38%,23% 61%,27% 58%,30% 21%,34% 60%,38% 61%,41% 35%,44% 60%,48% 59%,51% 28%,54% 59%,59% 59%,62% 35%,65% 61%,69% 57%,72% 26%,76% 60%,79% 60%,82% 37%,85% 60%,89% 58%,92% 28%,95% 59%,100% 58%,100% 100%)}
+.home-landscape[data-phase=evening]{background:linear-gradient(180deg,#343960,#b97486 59%,#ffbd88)}
+.home-landscape[data-phase=evening] .landscape-orb{background:#ffd0a1;box-shadow:0 0 30px #ff9c8b88;top:72px}
+.home-landscape[data-phase=night]{background:radial-gradient(circle at 72% 25%,#374d80,#101b3a 67%,#101927)}
+.home-landscape[data-phase=night] .landscape-orb{background:#f7f4df;box-shadow:0 0 25px #f9f7df55}
+.home-landscape[data-phase=night] .landscape-hill-back{background:#33435c}
+.home-landscape[data-phase=night] .landscape-hill-front{background:#1b3246}
+#viewHome>.next-lesson-card{position:relative;z-index:2}
+.desktop-sidebar{display:none}
+@media(min-width:1000px){
+ .app{max-width:1120px;padding-left:260px;padding-right:36px}
+ .desktop-sidebar{position:fixed;z-index:8;top:0;bottom:0;left:max(0px,calc((100vw - 1120px)/2));width:224px;padding:36px 18px;display:flex;flex-direction:column;gap:28px;border-right:1px solid var(--border);background:var(--bg)}
+ .desktop-brand{font-size:18px;font-weight:800;display:flex;align-items:center;gap:12px}
+ .desktop-brand small{display:block;font-size:11px;font-weight:500;color:var(--muted);margin-top:4px}
+ .desktop-brand-mark{display:grid;place-items:center;height:40px;width:40px;background:var(--accent);color:white;border-radius:12px}
+ .desktop-nav{display:grid;gap:7px}
+ .desktop-nav-button{border:0;background:transparent;color:var(--muted);text-align:left;padding:13px 14px;border-radius:12px;font-size:14px;display:flex;gap:12px;align-items:center}
+ .desktop-nav-button span{font-size:21px;min-width:24px}
+ .desktop-nav-button.is-active,.desktop-nav-button:hover{background:var(--accent-soft);color:var(--accent)}
+ .desktop-sidebar-foot{margin-top:auto;color:var(--muted);font-size:12px;line-height:1.6}
+ .bottom-nav{display:none}
+}
+@media(max-width:600px){
+ #viewHome>.screen-header{padding:25px 20px 65px;margin-bottom:-46px}
+ .home-landscape{height:190px;border-radius:0 0 22px 22px}
+}
