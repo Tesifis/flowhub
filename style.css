@@ -451,3 +451,29 @@ dialog.editor-sheet .editor-title-icon svg{width:24px;height:24px;display:block}
 .schedule-import-preview{display:grid;gap:6px;max-height:38vh;overflow-y:auto}
 .schedule-import-preview .edit-lesson{padding:10px 12px;line-height:1.5}
 #scheduleImportDialog #scheduleImportApply:disabled{opacity:.45;cursor:not-allowed}
+
+/* FlowHub v47 - integrated responsive landscape home header */
+#viewHome .home-landscape{
+ position:relative;isolation:isolate;overflow:hidden;margin:0 -20px 18px;
+ min-height:205px;padding:0 20px;
+ color:#f7f9ff;background:linear-gradient(180deg,#4b87c0 0%,#a4c7d9 56%,#acc5ae 100%);
+}
+#viewHome .home-landscape .screen-header{position:relative;z-index:2;padding-top:27px;align-items:flex-start}
+#viewHome .home-landscape .screen-header h1{color:#fff;text-shadow:0 2px 14px rgba(13,36,60,.22)}
+#viewHome .home-landscape .screen-header .date{color:#f4f8ff;text-shadow:0 1px 8px rgba(13,36,60,.34)}
+#viewHome .home-landscape #settings{color:#fff;background:rgba(12,30,49,.17);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(8px)}
+#viewHome .landscape-art{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+#viewHome .landscape-orb{position:absolute;right:17%;top:29px;width:55px;height:55px;border-radius:50%;background:#fff1c3;box-shadow:0 0 50px 18px rgba(255,229,166,.25)}
+#viewHome .landscape-mountain{position:absolute;bottom:-4px;width:115%;left:-8%;height:125px}
+#viewHome .landscape-mountain-back{background:#59889a;clip-path:polygon(0 100%,0 75%,15% 52%,24% 69%,42% 19%,55% 54%,73% 30%,88% 63%,100% 42%,100% 100%);opacity:.73}
+#viewHome .landscape-mountain-front{background:#315e69;clip-path:polygon(0 100%,0 82%,16% 66%,29% 83%,46% 45%,57% 72%,74% 52%,91% 76%,100% 61%,100% 100%);opacity:.93}
+#viewHome .landscape-forest{position:absolute;bottom:0;left:0;right:0;height:64px;background:#1c4947;clip-path:polygon(0 100%,0 74%,3% 74%,4% 43%,6% 76%,9% 76%,11% 25%,14% 77%,17% 77%,19% 42%,21% 81%,26% 81%,28% 28%,31% 81%,35% 81%,37% 53%,40% 84%,44% 84%,46% 33%,50% 87%,54% 87%,57% 51%,61% 84%,66% 84%,69% 21%,72% 83%,76% 83%,79% 42%,82% 80%,87% 80%,90% 26%,93% 78%,96% 78%,98% 46%,100% 82%,100% 100%)}
+#viewHome .home-landscape[data-sky="sunset"]{background:linear-gradient(180deg,#464b85 0%,#d58e8e 53%,#efba87 100%)}
+#viewHome .home-landscape[data-sky="sunset"] .landscape-orb{background:#ffe0ad;box-shadow:0 0 45px 20px rgba(255,193,120,.32)}
+#viewHome .home-landscape[data-sky="night"]{background:linear-gradient(180deg,#121b39 0%,#2c3863 63%,#4c6075 100%)}
+#viewHome .home-landscape[data-sky="night"] .landscape-orb{width:43px;height:43px;background:#eff2ff;box-shadow:0 0 30px 10px rgba(212,225,255,.18)}
+#viewHome .home-landscape[data-sky="night"] .landscape-mountain-back{background:#475879}
+#viewHome .home-landscape[data-sky="night"] .landscape-mountain-front{background:#253d5b}
+#viewHome .home-landscape[data-sky="night"] .landscape-forest{background:#172e40}
+@media(min-width:741px){#viewHome .home-landscape{border-radius:0 0 21px 21px}}
+@media(prefers-reduced-motion:no-preference){#viewHome .home-landscape{transition:background .4s ease}}
